@@ -1,0 +1,37 @@
+[unary_expression]
+[postfix_expression]
+[primary]
+[reference]
+[id] [repeat component]
+
+[id] [method_argument]
+[id] '( [list argument] ')
+
+
+define argument
+        [expression]
+    |   [type_specifier]
+end define
+
+
+
+
+        'rule Name [stringlit]
+        'when
+            Trigger [trigger_condition]
+            MoreTC [repeat moreTC]
+        'then 
+            Script [script_block]
+        'end
+
+    %deconstruct Script
+        %Statements [repeat statement]
+    
+    by
+        'rule Name
+        'when
+            Trigger
+            MoreTC
+        'then 
+            Script
+        'end

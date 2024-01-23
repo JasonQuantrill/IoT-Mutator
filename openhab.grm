@@ -1,0 +1,250 @@
+include "java.grm"
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+keys
+%OpenHAB
+     'rule 'var 'val 'Member 'received  'update 'changed  'Item 'midnight 'noon 'is %'command
+      'cron 'System 'started 'start 'level 'Thing 'Channel 'triggered 'from 'to 'newArrayList %'as
+    % 'DecimalType 'DateTimeType 
+end keys
+    
+
+redefine program
+    [automation]
+end redefine
+
+define automation
+ [opt package_header] [repeat import_declaration]
+[repeat variable_declaration]
+[repeat OpenHAB_rule]
+end define
+
+redefine variable_declaration
+   [SPOFF][repeat modifier] [type_specifier] [variable_declarators][SPON] [NL]
+   |[SPOFF][repeat modifier][variable_declarators][SPON] [NL]
+end redefine
+
+define as_type
+	'as 'DecimalType | 'as 'DateTimeType 
+end define
+
+redefine modifier
+	'var| 
+	'val|...
+end redefine
+
+redefine primitive_type
+'Number
+|...
+end redefine
+
+define OpenHAB_rule
+'rule [rule_id][NL]
+'when [NL]
+    [IN][trigger_condition][repeat moreTC][EX][NL]
+'then [NL]
+    [IN][script_block][EX][NL]
+'end [NL][NL]
+end define
+
+define rule_id
+	[stringlit]
+	|[id]
+end define
+
+define moreTC
+	'or [trigger_condition][NL]
+end define
+
+define trigger_condition
+[Event_based_Triggers]|
+[Time_based_triggers]|
+[System_based_triggers]|
+[Thing_based_triggers]|
+[triggerChannel]
+end define
+
+define Event_based_Triggers
+[item_based_Triggers]|
+[group_based_Triggers]
+end define
+
+define group_based_Triggers
+'Member 'of [id] 'received 'command [opt command] |
+'Member 'of [id] 'received 'update [opt state]   |
+'Member 'of [id] 'changed [SPOFF][opt from_range][opt to_range][SPON]
+end define
+
+define item_based_Triggers
+'Item [id] 'received 'command [opt command]|
+'Item [id] 'received 'update [opt state] |
+'Item [id]'changed [SPOFF][opt from_range][opt to_range][SPON]
+end define
+
+define Time_based_triggers
+'Time 'is 'midnight|
+'Time 'is 'noon|
+'Time 'is [id] [opt timeOnly]|
+'Time 'cron [cron_expression]
+end define
+
+define cron_expression
+%[seconds][minutes][hours][day_of_month][month][day_of_week][opt year]
+[stringlit]
+end define
+
+define System_based_triggers
+	'System 'started [NL]|
+	'System 'reached 'start 'level [level]	[NL]
+end define
+define level
+	00|10|20|30|40|50|70|80|100
+end define
+	
+define Thing_based_triggers
+'Thing [id] 'received 'update [opt status]
+'Thing [id] 'changed [SPOFF][opt from_range][opt to_range][SPON]
+end define
+
+define from_range
+'from [status] 
+end define
+
+define to_range
+'to [status] 
+end define
+
+
+define triggerChannel
+'Channel [stringlit] 'triggered [opt triggerEvent]
+end define
+
+define script_block
+[repeat openHAB_declaration_or_statement][NL]
+%[repeat statement][NL]
+end define
+
+define openHAB_declaration_or_statement
+	[variable_declaration] [NL]
+	|[statement][NL]
+end define
+
+define command
+[id]|
+[number]
+end define
+
+define state
+[id]|[number]
+end define
+
+define timeOnly
+[id]
+end define
+
+define status
+[id]
+|[number]
+|[literal]
+|[string_literal]
+end define
+
+define triggerEvent
+[id]
+end define
+redefine import_declaration
+        'import [opt 'static] [imported_name] [opt dot_star] [NL][NL]
+    |    [NL]    % observed
+end redefine
+redefine expression_statement
+    [expression]%[NL] %[end_of_statement] [NL]
+end redefine
+
+redefine package_header
+    [repeat annotation] 'package [package_name] [NL][NL]
+end redefine
+
+%redefine variable_declaration
+%    [repeat modifier] [type_specifier] [variable_declarators] [NL][NL]
+%end redefine
+
+redefine method_body
+        [block]  [NL][NL]
+    |        [NL][NL]
+    |   'default [annotation_value] [NL][NL]
+end redefine
+
+
+redefine do_statement
+    'do
+        [statement]
+    'while '( [condition] ')  [NL]
+end redefine
+
+redefine for_init
+        [list expression]   
+    |   [local_variable_declaration]
+end redefine
+
+redefine for_expression
+    [opt expression]    
+end redefine
+
+redefine for_update
+    [list expression]
+end redefine
+
+redefine break_statement
+    'break [opt label_name]       [NL]
+end redefine
+
+redefine continue_statement
+    'continue [opt label_name]     [NL]
+end redefine
+
+redefine return_statement
+    'return [opt expression]       [NL]
+end redefine
+
+redefine throw_statement
+    'throw [expression]           [NL]
+end redefine
+redefine assert_statement
+    'assert [expression] [opt assert_error_code] [NL]
+end redefine
+redefine  equality_op
+    '===|'!==|... 
+end redefine
+
+
+redefine lambda_expression
+    '[| [repeat statement]']|...
+end redefine
+redefine argument
+       ...|[lambda_expression]
+end redefine
+%redefine class_instance_creation_expression
+%    ...|'new [class_or_interface_name]
+%end redefine
+
+redefine array_creation_expression
+...| 'newArrayList [opt array_initializer]
+	
+end redefine
+
+redefine cast_expression
+   ...| '( [type_bound] 'as [type_bound] ')   %'. [unary_expression]
+      | '( [type_bound] 'as [type_bound] ') %'. [lambda_expression]
+      | [reference] 'as [type_bound]
+end redefine
+
+redefine primitive_type
+...|'DecimalType 
+   |'DateTimeType 
+	
+end redefine
+
+redefine  argument
+        ...
+        | [if_statement]
+end redefine
+% END
