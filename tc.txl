@@ -32,7 +32,7 @@ end function
 
 function modifyRules
     replace [repeat OpenHAB_rule]
-        'rule Name [stringlit]
+        'rule Name [rule_id]
         'when
             Trigger [trigger_condition]
             MoreTC [repeat moreTC]

@@ -35,7 +35,7 @@ end function
 
 function modifyRules
     replace [repeat OpenHAB_rule]
-        'rule Name [stringlit]
+        'rule Name [rule_id]
         'when
             Trigger [trigger_condition]
             MoreTC [repeat moreTC]
@@ -44,12 +44,12 @@ function modifyRules
         'end
 
     deconstruct Script
-        Statements [repeat statement]
+        Statements [repeat openHAB_declaration_or_statement]
 
-    construct exportItem [repeat statement]
+    construct exportItem [repeat openHAB_declaration_or_statement]
         Statements [exportItem]
 
-    construct ModifiedStatements [repeat statement]
+    construct ModifiedStatements [repeat openHAB_declaration_or_statement]
         Statements [changeItem]
 
     by
