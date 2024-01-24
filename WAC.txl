@@ -5,22 +5,22 @@ function main
     replace [program] 
         P [program]
     construct NewP [program]
-        P [changeRule]
+        P [createWeakActionContradiction]
     by
         NewP
 end function
 
 
-function changeRule
+function createWeakActionContradiction
     replace [program]
         Package [opt package_header]
         Import [repeat import_declaration]
         Declares [repeat variable_declaration]
         Rules [repeat OpenHAB_rule]
 
-    construct ModifiedRules [repeat OpenHAB_rule]
-        Rules [forceIdenticalTriggers]
-
+    construct ModifiedRules  [repeat OpenHAB_rule]
+        Rules [changeAction]
+    
     by
         Package
         Import
@@ -29,7 +29,7 @@ function changeRule
 end function
 
 
-function forceIdenticalTriggers
+function changeAction
     replace [repeat OpenHAB_rule]
         Rules [repeat OpenHAB_rule]
     
@@ -55,61 +55,59 @@ function forceIdenticalTriggers
         'then 
             ScriptB [script_block]
         'end
-    
+
+    deconstruct ScriptA
+        StatementsA [repeat openHAB_declaration_or_statement]
+    deconstruct ScriptB
+        StatementsB [repeat openHAB_declaration_or_statement]
+
+    construct exportItem [repeat openHAB_declaration_or_statement]
+        StatementsA [exportItemA]
+
+    construct ModifiedStatements [repeat openHAB_declaration_or_statement]
+        StatementsB [changeItemB]
+
     by
         'rule NameA
         'when
             TriggerA
             MoreTCA
         'then 
-            ScriptA
+            StatementsA
         'end
 
         'rule NameB
         'when
-            TriggerA
+            TriggerB
             MoreTCB
         'then 
-            ScriptB
+            ModifiedStatements
         'end
         RestB
-
 end function
-    
 
+function exportItemA
+    replace * [statement]
+        Action [id]
+        '( ItemA [expression], Value [expression] ')
 
+    export ItemA
 
-
-
-function modifyRules
-    replace [repeat OpenHAB_rule]
-        'rule Name [rule_id]
-        'when
-            Trigger [trigger_condition]
-            MoreTC [repeat moreTC]
-        'then 
-            Script [script_block]
-        'end
-    
-    construct NewTrigger [trigger_condition]
-        Trigger [changeTriggerItem]
-    
     by
-        'rule Name
-        'when
-            NewTrigger
-            MoreTC
-        'then
-            Script
-        'end
+        Action '( ItemA, Value )
 end function
 
 
-function changeTriggerItem
-    replace [trigger_condition]
-        'Item ItemId [id]
-        'received 'update
+function changeItemB
+    import ItemA [expression]
+
+    replace * [statement]
+        Action [id]
+        '( ItemB [expression], Value [expression] ')
+
+    %where not
+        %ItemB [sameItem ItemA]
+
     by
-        'Item ItemId123
-        'received 'update
+        Action '( ItemA, Value )
 end function
