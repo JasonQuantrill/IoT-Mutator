@@ -139,8 +139,37 @@ function ensureCompatibleTriggers
             ScriptB [script_block]
         'end
 
+    construct TriggerARC [trigger_condition]
+        TriggerA [triggerRC]
+    construct TriggerARU [trigger_condition]
+        TriggerA [triggerRU]
+
     by
         RuleA
         RuleB
         RestB
+end function
+
+function triggerRC
+    replace [trigger_condition]
+        'Item ItemId [id]
+        'received 'command
+        Command [opt command]
+
+    by
+        'Item ItemId
+        'received 'command
+        Command
+end function
+
+function triggerRU
+    replace [trigger_condition]
+        'Item ItemId [id]
+        'received 'update
+        State [opt state]
+
+    by
+        'Item ItemId
+        'received 'update
+        State
 end function
