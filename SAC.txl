@@ -105,9 +105,6 @@ function changeItemB
         Action [id]
         '( ItemB [expression], Value [expression] ')
 
-    %where not
-        %ItemB [sameItem ItemA]
-
     by
         Action '( ItemA, Value )
 end function
