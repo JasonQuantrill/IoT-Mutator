@@ -19,7 +19,7 @@ function createWeakActionContradiction
         Rules [repeat OpenHAB_rule]
 
     construct ModifiedRules  [repeat OpenHAB_rule]
-        Rules [changeAction]
+        Rules [changeAction] [ensureCompatibleTriggers]
     
     by
         Package
@@ -110,4 +110,37 @@ function changeItemB
 
     by
         Action '( ItemA, Value )
+end function
+
+function ensureCompatibleTriggers
+    replace [repeat OpenHAB_rule]
+        Rules [repeat OpenHAB_rule]
+    
+    deconstruct Rules
+        RuleA [OpenHAB_rule] RestA [repeat OpenHAB_rule]
+    deconstruct RestA
+        RuleB [OpenHAB_rule] RestB [repeat OpenHAB_rule]
+
+    deconstruct RuleA
+        'rule NameA [rule_id]
+        'when
+            TriggerA [trigger_condition]
+            MoreTCA [repeat moreTC]
+        'then 
+            ScriptA [script_block]
+        'end
+
+    deconstruct RuleB
+        'rule NameB [rule_id]
+        'when
+            TriggerB [trigger_condition]
+            MoreTCB [repeat moreTC]
+        'then 
+            ScriptB [script_block]
+        'end
+
+    by
+        RuleA
+        RuleB
+        RestB
 end function
