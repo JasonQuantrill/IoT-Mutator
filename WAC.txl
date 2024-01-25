@@ -139,12 +139,10 @@ function ensureCompatibleTriggers
             ScriptB [script_block]
         'end
 
-    %%% Multiple constructs to try to match different trigger patterns. Only 1 will succeed.
-    %%% Construct only used to call export function and extract the Item as a global variable
-    construct TriggerARC [trigger_condition]
-        TriggerA [exportItemRC]
-    construct TriggerARU [trigger_condition]
-        TriggerA [exportItemRU]
+    %%% To extract Item and Value as global variables
+    construct Trigger [trigger_condition]
+        TriggerA [extractTriggerData]
+
 
     %%% If these all fail, it means the triggers depend on different Items, and therefore are already compatible
     construct TriggerBRC [trigger_condition]
@@ -157,6 +155,23 @@ function ensureCompatibleTriggers
         RuleB
         RestB
 end function
+
+
+function extractTriggerData
+    replace [trigger_condition]
+        Trigger [trigger_condition]
+
+    %%% Multiple constructs to try to match different trigger patterns. Only 1 will succeed.
+    %%% Construct only used to call export function and extract the Item as a global variable
+    construct TriggerARC [trigger_condition]
+        Trigger [exportItemRC]
+    construct TriggerARU [trigger_condition]
+        Trigger [exportItemRU]
+
+    by  
+        Trigger
+end function
+
 
 function exportItemRC
     replace [trigger_condition]
@@ -186,6 +201,7 @@ function exportItemRU
         State
 end function
 
+
 function changeTriggerRC
     import ItemA2 [id]
     
@@ -203,6 +219,7 @@ function changeTriggerRC
         Command
 end function
 
+
 function changeTriggerRU
     import ItemA2 [id]
     
@@ -213,9 +230,11 @@ function changeTriggerRU
     
     where
         ItemId [= ItemA2]
-        
+
     by
         'Item ItemA2
         'received 'update
         State
 end function
+
+function ensureCompatibleTriggerValues
