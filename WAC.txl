@@ -238,3 +238,8 @@ function changeTriggerRU
 end function
 
 function ensureCompatibleTriggerValues
+    replace [trigger_condition]
+        Trigger [trigger_condition]
+    by
+        Trigger
+end function
