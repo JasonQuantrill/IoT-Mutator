@@ -62,10 +62,10 @@ function changeAction
         StatementsB [repeat openHAB_declaration_or_statement]
 
     construct exportItem [repeat openHAB_declaration_or_statement]
-        StatementsA [exportItemA]
+        StatementsA [exportItemA1]
 
     construct ModifiedStatements [repeat openHAB_declaration_or_statement]
-        StatementsB [changeItemB]
+        StatementsB [changeItemB1]
 
     by
         'rule NameA
@@ -86,30 +86,30 @@ function changeAction
         RestB
 end function
 
-function exportItemA
+function exportItemA1
     replace * [statement]
         Action [id]
-        '( ItemA [expression], Value [expression] ')
+        '( ItemA1 [expression], Value [expression] ')
 
-    export ItemA
+    export ItemA1
 
     by
-        Action '( ItemA, Value )
+        Action '( ItemA1, Value )
 end function
 
 
-function changeItemB
-    import ItemA [expression]
+function changeItemB1
+    import ItemA1 [expression]
 
     replace * [statement]
         Action [id]
-        '( ItemB [expression], Value [expression] ')
+        '( ItemB1 [expression], Value [expression] ')
 
     %where not
-        %ItemB [sameItem ItemA]
+        %ItemB1 [sameItem ItemA1]
 
     by
-        Action '( ItemA, Value )
+        Action '( ItemA1, Value )
 end function
 
 function ensureCompatibleTriggers
@@ -139,10 +139,18 @@ function ensureCompatibleTriggers
             ScriptB [script_block]
         'end
 
+    %%% Multiple constructs to try to match different trigger patterns. Only 1 will succeed.
+    %%% Construct only used to call export function and extract the Item as a global variable
     construct TriggerARC [trigger_condition]
-        TriggerA [triggerRC]
+        TriggerA [exportItemRC]
     construct TriggerARU [trigger_condition]
-        TriggerA [triggerRU]
+        TriggerA [exportItemRU]
+
+    %%% If these all fail, it means the triggers depend on different Items, and therefore are already compatible
+    construct TriggerBRC [trigger_condition]
+        TriggerB [changeTriggerRC]
+    construct TriggerBRU [trigger_condition]
+        TriggerB [changeTriggerRU]
 
     by
         RuleA
@@ -150,26 +158,64 @@ function ensureCompatibleTriggers
         RestB
 end function
 
-function triggerRC
+function exportItemRC
+    replace [trigger_condition]
+        'Item ItemA2 [id]
+        'received 'command
+        Command [opt command]
+
+    export ItemA2
+
+    by
+        'Item ItemA2
+        'received 'command
+        Command
+end function
+
+function exportItemRU
+    replace [trigger_condition]
+        'Item ItemA2 [id]
+        'received 'update
+        State [opt state]
+
+    export ItemA2
+    
+    by
+        'Item ItemA2
+        'received 'update
+        State
+end function
+
+function changeTriggerRC
+    import ItemA2 [id]
+    
     replace [trigger_condition]
         'Item ItemId [id]
         'received 'command
         Command [opt command]
 
+    where
+        ItemId [= ItemA2]
+
     by
-        'Item ItemId
+        'Item ItemA2
         'received 'command
         Command
 end function
 
-function triggerRU
+function changeTriggerRU
+    import ItemA2 [id]
+    
     replace [trigger_condition]
         'Item ItemId [id]
         'received 'update
         State [opt state]
-
+    
+    where
+        ItemId [= ItemA2]
+        
     by
-        'Item ItemId
+        'Item ItemA2
         'received 'update
         State
 end function
