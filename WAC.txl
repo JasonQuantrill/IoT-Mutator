@@ -1,5 +1,6 @@
 % TXL OpenHAB Rules Grammar
 include "openhab.grm"
+include "extractTriggerData.txl"
 
 
 %%% Work still to do:
@@ -12,7 +13,19 @@ include "openhab.grm"
 % ensuring different values
 % ensure compatible triggers
 
+
+
 function main
+
+    %%% Define global variables
+    %%% Construct and export with "nothing" id
+    construct TriggerItem [id]
+        nothing
+    export TriggerItem
+    construct TriggerToValue [id]
+        nothing
+    export TriggerToValue
+
     replace [program] 
         P [program]
     construct NewP [program]
@@ -165,18 +178,7 @@ function ensureCompatibleTriggers
 end function
 
 
-function extractTriggerData
-    replace [trigger_condition]
-        Trigger [trigger_condition]
 
-    %%% Multiple constructs to try to match different trigger patterns. Only 1 will succeed.
-    %%% Construct only used to call export function and extract the Item as a global variable
-    construct _ [trigger_condition]
-        Trigger [exportItemRC] [exportItemRU]
-
-    by  
-        Trigger
-end function
 
 
 function modifyTrigger
@@ -194,37 +196,8 @@ function modifyTrigger
 end function
 
 
-function exportItemRC
-    replace [trigger_condition]
-        'Item ItemA2 [id]
-        'received 'command
-        Command [opt command]
-
-    export ItemA2
-
-    by
-        'Item ItemA2
-        'received 'command
-        Command
-end function
-
-function exportItemRU
-    replace [trigger_condition]
-        'Item ItemA2 [id]
-        'received 'update
-        State [opt state]
-
-    export ItemA2
-    
-    by
-        'Item ItemA2
-        'received 'update
-        State
-end function
-
-
 function changeTriggerRC
-    import ItemA2 [id]
+    import TriggerItem [id]
     
     replace [trigger_condition]
         'Item ItemId [id]
@@ -232,17 +205,17 @@ function changeTriggerRC
         Command [opt command]
 
     where
-        ItemId [= ItemA2]
+        ItemId [= TriggerItem]
 
     by
-        'Item ItemA2
+        'Item TriggerItem
         'received 'command
         Command
 end function
 
 
 function changeTriggerRU
-    import ItemA2 [id]
+    import TriggerItem [id]
     
     replace [trigger_condition]
         'Item ItemId [id]
@@ -250,10 +223,10 @@ function changeTriggerRU
         State [opt state]
     
     where
-        ItemId [= ItemA2]
+        ItemId [= TriggerItem]
 
     by
-        'Item ItemA2
+        'Item TriggerItem
         'received 'update
         State
 end function
@@ -264,3 +237,4 @@ function ensureCompatibleTriggerValues
     by
         Trigger
 end function
+
