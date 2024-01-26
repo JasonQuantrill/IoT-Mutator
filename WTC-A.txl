@@ -8,6 +8,16 @@ include "openhab.grm"
 
 
 function main
+
+    %%% Define global variables
+    %%% Construct and export with "nothing" id
+    construct TriggerItem [id]
+        nothing
+    export TriggerItem
+    construct TriggerToValue [id]
+        nothing
+    export TriggerToValue
+
     replace [program] 
         P [program]
     construct NewP [program]
@@ -72,7 +82,7 @@ function modifyAction
         TriggerB [extractTriggerData]
 
     construct ModifiedStatements [repeat openHAB_declaration_or_statement]
-        StatementsA [changeItemB1]
+        StatementsA [changeActionFunctionItemValue] [changeActionFunctionItem]
     
     by
         'rule NameA
@@ -94,27 +104,35 @@ function modifyAction
 end function
     
 
-function changeItemB1
-    import TriggerItem [id]
-    import TriggerToValue [status]
-
+function changeActionFunctionItemValue
     replace * [statement]
         Action [id]
         '( ItemB1 [expression], Value [expression] ')
 
+    import TriggerItem [id]
+    import TriggerToValue [id]
 
-    construct TriggerToString [stringlit]
-        _ [quote TriggerToValue]
-    construct TriggerToExpression [id]
-        _ [unquote TriggerToString]
-    
+    where not
+        TriggerToValue [= "nothing"]
 
     by
-        Action '( TriggerItem, TriggerToExpression ')
+        Action '( TriggerItem, TriggerToValue ')
 end function
 
+function changeActionFunctionItem
+    replace * [statement]
+        Action [id]
+        '( ItemB1 [expression], Value [expression] ')
 
+    import TriggerItem [id]
+    import TriggerToValue [id]
 
+    where
+        TriggerToValue [= "nothing"]
+
+    by
+        Action '( TriggerItem, Value ')
+end function
 
 
 
@@ -126,17 +144,31 @@ function extractTriggerData
     replace [trigger_condition]
         Trigger [trigger_condition]
 
-    %%% Multiple constructs to try to match different trigger patterns. Only 1 will succeed.
-    %%% Construct only used to call export function and extract the Item as a global variable
+    %%% Multiple functions to try to match different trigger patterns. Only 1 will succeed.
+    %%% Different patterns include "received command", "post update ON", "changed to ON", etc
+    %%% Export function extracts the trigger data as global variables so they can be used in the replacement
     construct _ [trigger_condition]
-        Trigger [exportTriggerDataRC] [exportTriggerDataRU] [exportTriggerDataC]
+        Trigger [exportTriggerRCItem] [exportTriggerRUItem] [exportTriggerCItem]
+                [exportTriggerRCItemValue] [exportTriggerRUItemValue] [exportTriggerCItemValue]
 
     by  
         Trigger
 end function
 
 
-function exportTriggerDataRC
+function exportTriggerRCItem
+    replace [trigger_condition]
+        'Item TriggerItem [id]
+        'received 'command
+
+    export TriggerItem
+
+    by
+        'Item ItemA2
+        'received 'command
+end function
+
+function exportTriggerRCItemValue
     replace [trigger_condition]
         'Item TriggerItem [id]
         'received 'command
@@ -150,7 +182,7 @@ function exportTriggerDataRC
         TriggerToValue
 end function
 
-function exportTriggerDataRU
+function exportTriggerRUItem
     replace [trigger_condition]
         'Item TriggerItem [id]
         'received 'update
@@ -164,7 +196,19 @@ function exportTriggerDataRU
         TriggerToValue
 end function
 
-function exportTriggerDataC
+function exportTriggerCItem
+    replace [trigger_condition]
+        'Item TriggerItem [id]
+        'changed
+
+    export TriggerItem
+    
+    by
+        'Item TriggerItem
+        'changed
+end function
+
+function exportTriggerCItemValue
     replace [trigger_condition]
         'Item TriggerItem [id]
         'changed
@@ -172,7 +216,7 @@ function exportTriggerDataC
         TriggerTo [opt to_range]
 
     deconstruct TriggerTo
-        'to TriggerToValue [status]
+        'to TriggerToValue [id]
 
     export TriggerItem
     export TriggerToValue
