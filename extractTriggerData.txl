@@ -1,3 +1,12 @@
+%%% Need to define following global variables in main
+%   construct TriggerItem [id]
+%       nothing
+%   export TriggerItem
+%   construct TriggerToValue [id]
+%       nothing
+%   export TriggerToValue
+
+
 function extractTriggerData
     replace [trigger_condition]
         Trigger [trigger_condition]
