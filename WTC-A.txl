@@ -5,13 +5,13 @@ function main
     replace [program] 
         P [program]
     construct NewP [program]
-        P [changeRule]
+        P [createWeakTriggerCascade]
     by
         NewP
 end function
 
 
-function changeRule
+function createWeakTriggerCascade
     replace [program]
         Package [opt package_header]
         Import [repeat import_declaration]
