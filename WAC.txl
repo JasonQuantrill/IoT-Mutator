@@ -1,6 +1,17 @@
 % TXL OpenHAB Rules Grammar
 include "openhab.grm"
 
+
+%%% Work still to do:
+% create pattern matches for additional trigger patterns
+%       opt state
+%       opt command
+%       changed
+%       time & system based trigs
+% pattern matches for all action patterns
+% ensuring different values
+% ensure compatible triggers
+
 function main
     replace [program] 
         P [program]
@@ -140,15 +151,12 @@ function ensureCompatibleTriggers
         'end
 
     %%% To extract Item and Value as global variables
-    construct Trigger [trigger_condition]
+    construct _ [trigger_condition]
         TriggerA [extractTriggerData]
 
-
-    %%% If these all fail, it means the triggers depend on different Items, and therefore are already compatible
-    construct TriggerBRC [trigger_condition]
-        TriggerB [changeTriggerRC]
-    construct TriggerBRU [trigger_condition]
-        TriggerB [changeTriggerRU]
+    %%% To perform all checks and edit Trigger Value if necessary
+    construct ModifiedTriggerB [trigger_condition]
+        TriggerB [modifyTrigger]
 
     by
         RuleA
@@ -169,6 +177,21 @@ function extractTriggerData
         Trigger [exportItemRU]
 
     by  
+        Trigger
+end function
+
+
+function modifyTrigger
+    replace [trigger_condition]
+        Trigger [trigger_condition]
+
+    %%% If these all fail, it means the triggers depend on different Items, and therefore are already compatible
+    construct TriggerBRC [trigger_condition]
+        TriggerB [changeTriggerRC]
+    construct TriggerBRU [trigger_condition]
+        TriggerB [changeTriggerRU]
+
+    by
         Trigger
 end function
 

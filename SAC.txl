@@ -97,7 +97,6 @@ function exportItemA
         Action '( ItemA, Value )
 end function
 
-
 function changeItemB
     import ItemA [expression]
 
