@@ -1,6 +1,12 @@
 % TXL OpenHAB Rules Grammar
 include "openhab.grm"
 
+
+%%% Weak Trigger Cascade - Action
+% Modify Action
+% Ensure Compatible Conditions
+
+
 function main
     replace [program] 
         P [program]
@@ -19,7 +25,7 @@ function createWeakTriggerCascade
         Rules [repeat OpenHAB_rule]
 
     construct ModifiedRules [repeat OpenHAB_rule]
-        Rules [forceIdenticalTriggers]
+        Rules [modifyAction]
 
     by
         Package
@@ -29,7 +35,7 @@ function createWeakTriggerCascade
 end function
 
 
-function forceIdenticalTriggers
+function modifyAction
     replace [repeat OpenHAB_rule]
         Rules [repeat OpenHAB_rule]
     
@@ -55,6 +61,18 @@ function forceIdenticalTriggers
         'then 
             ScriptB [script_block]
         'end
+
+    deconstruct ScriptA
+        StatementsA [repeat openHAB_declaration_or_statement]
+    deconstruct ScriptB
+        StatementsB [repeat openHAB_declaration_or_statement]
+
+    %%% Extract data from second trigger
+    construct _ [trigger_condition]
+        TriggerB [extractTriggerData]
+
+    construct ModifiedStatements [repeat openHAB_declaration_or_statement]
+        StatementsA [changeItemB1]
     
     by
         'rule NameA
@@ -62,7 +80,7 @@ function forceIdenticalTriggers
             TriggerA
             MoreTCA
         'then 
-            ScriptA
+            ModifiedStatements
         'end
 
         'rule NameB
@@ -73,43 +91,92 @@ function forceIdenticalTriggers
             ScriptB
         'end
         RestB
-
 end function
     
 
+function changeItemB1
+    import TriggerItem [id]
+    import TriggerToValue [status]
+
+    replace * [statement]
+        Action [id]
+        '( ItemB1 [expression], Value [expression] ')
 
 
+    construct TriggerToExpression [expression]
+        _ [parse TriggerToValue]
 
-
-function modifyRules
-    replace [repeat OpenHAB_rule]
-        'rule Name [rule_id]
-        'when
-            Trigger [trigger_condition]
-            MoreTC [repeat moreTC]
-        'then 
-            Script [script_block]
-        'end
-    
-    construct NewTrigger [trigger_condition]
-        Trigger [changeTriggerItem]
-    
     by
-        'rule Name
-        'when
-            NewTrigger
-            MoreTC
-        'then
-            Script
-        'end
+        Action '( TriggerItem, TriggerToExpression )
 end function
 
 
-function changeTriggerItem
+
+
+
+
+
+
+
+
+function extractTriggerData
     replace [trigger_condition]
-        'Item ItemId [id]
-        'received 'update
+        Trigger [trigger_condition]
+
+    %%% Multiple constructs to try to match different trigger patterns. Only 1 will succeed.
+    %%% Construct only used to call export function and extract the Item as a global variable
+    construct _ [trigger_condition]
+        Trigger [exportTriggerDataRC] [exportTriggerDataRU] [exportTriggerDataC]
+
+    by  
+        Trigger
+end function
+
+
+function exportTriggerDataRC
+    replace [trigger_condition]
+        'Item TriggerItem [id]
+        'received 'command
+        TriggerToValue [opt command]
+
+    export TriggerItem
+
     by
-        'Item ItemId123
+        'Item ItemA2
+        'received 'command
+        TriggerToValue
+end function
+
+function exportTriggerDataRU
+    replace [trigger_condition]
+        'Item TriggerItem [id]
         'received 'update
+        TriggerToValue [opt state]
+
+    export TriggerItem
+    
+    by
+        'Item ItemA2
+        'received 'update
+        TriggerToValue
+end function
+
+function exportTriggerDataC
+    replace [trigger_condition]
+        'Item TriggerItem [id]
+        'changed
+        TriggerFromValue [opt from_range]
+        TriggerTo [opt to_range]
+
+    deconstruct TriggerTo
+        'to TriggerToValue [status]
+
+    export TriggerItem
+    export TriggerToValue
+    
+    by
+        'Item TriggerItem
+        'changed
+        TriggerFromValue
+        TriggerToValue
 end function
