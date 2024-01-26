@@ -1,6 +1,8 @@
 % TXL OpenHAB Rules Grammar
 include "openhab.grm"
 include "extractTriggerData.txl"
+include "extractActionData.txl"
+include "modifyAction.txl"
 
 
 %%% Work still to do:
@@ -19,12 +21,12 @@ function main
 
     %%% Define global variables
     %%% Construct and export with "nothing" id
-    construct TriggerItem [id]
+    construct ReplacementItem [id]
         nothing
-    export TriggerItem
-    construct TriggerToValue [id]
+    export ReplacementItem
+    construct ReplacementValue [id]
         nothing
-    export TriggerToValue
+    export ReplacementValue
 
     replace [program] 
         P [program]
@@ -43,7 +45,8 @@ function createWeakActionContradiction
         Rules [repeat OpenHAB_rule]
 
     construct ModifiedRules  [repeat OpenHAB_rule]
-        Rules [modifyAction] [ensureCompatibleTriggers]
+        Rules   [modifyActionWithActionData]
+                [ensureCompatibleTriggers]
     
     by
         Package
@@ -53,7 +56,7 @@ function createWeakActionContradiction
 end function
 
 
-function modifyAction
+function modifyActionWithActionData
     replace [repeat OpenHAB_rule]
         Rules [repeat OpenHAB_rule]
     
@@ -80,16 +83,14 @@ function modifyAction
             ScriptB [script_block]
         'end
 
-    deconstruct ScriptA
-        StatementsA [repeat openHAB_declaration_or_statement]
     deconstruct ScriptB
         StatementsB [repeat openHAB_declaration_or_statement]
 
-    construct exportItem [repeat openHAB_declaration_or_statement]
-        StatementsA [exportItemA1]
+    construct _ [script_block]
+        ScriptA [extractActionData]
 
-    construct ModifiedStatements [repeat openHAB_declaration_or_statement]
-        StatementsB [changeItemB1]
+    construct ModifiedScript [script_block]
+        ScriptB [modifyActionOpposite]
 
     by
         'rule NameA
@@ -97,7 +98,7 @@ function modifyAction
             TriggerA
             MoreTCA
         'then 
-            StatementsA
+            ScriptA
         'end
 
         'rule NameB
@@ -105,35 +106,9 @@ function modifyAction
             TriggerB
             MoreTCB
         'then 
-            ModifiedStatements
+            ModifiedScript
         'end
         RestB
-end function
-
-function exportItemA1
-    replace * [statement]
-        Action [id]
-        '( ItemA1 [expression], Value [expression] ')
-
-    export ItemA1
-
-    by
-        Action '( ItemA1, Value )
-end function
-
-
-function changeItemB1
-    import ItemA1 [expression]
-
-    replace * [statement]
-        Action [id]
-        '( ItemB1 [expression], Value [expression] ')
-
-    %where not
-        %ItemB1 [sameItem ItemA1]
-
-    by
-        Action '( ItemA1, Value )
 end function
 
 function ensureCompatibleTriggers
@@ -163,11 +138,11 @@ function ensureCompatibleTriggers
             ScriptB [script_block]
         'end
 
-    %%% To extract Item and Value as global variables
+    %%% To extract Item and ReplacementValue as global variables
     construct _ [trigger_condition]
         TriggerA [extractTriggerData]
 
-    %%% To perform all checks and edit Trigger Value if necessary
+    %%% To perform all checks and edit Trigger ReplacementValue if necessary
     construct ModifiedTriggerB [trigger_condition]
         TriggerB [modifyTrigger]
 
@@ -197,7 +172,7 @@ end function
 
 
 function changeTriggerRC
-    import TriggerItem [id]
+    import ReplacementItem [id]
     
     replace [trigger_condition]
         'Item ItemId [id]
@@ -205,17 +180,17 @@ function changeTriggerRC
         Command [opt command]
 
     where
-        ItemId [= TriggerItem]
+        ItemId [= ReplacementItem]
 
     by
-        'Item TriggerItem
+        'Item ReplacementItem
         'received 'command
         Command
 end function
 
 
 function changeTriggerRU
-    import TriggerItem [id]
+    import ReplacementItem [id]
     
     replace [trigger_condition]
         'Item ItemId [id]
@@ -223,10 +198,10 @@ function changeTriggerRU
         State [opt state]
     
     where
-        ItemId [= TriggerItem]
+        ItemId [= ReplacementItem]
 
     by
-        'Item TriggerItem
+        'Item ReplacementItem
         'received 'update
         State
 end function
