@@ -171,10 +171,8 @@ function extractTriggerData
 
     %%% Multiple constructs to try to match different trigger patterns. Only 1 will succeed.
     %%% Construct only used to call export function and extract the Item as a global variable
-    construct TriggerARC [trigger_condition]
-        Trigger [exportItemRC]
-    construct TriggerARU [trigger_condition]
-        Trigger [exportItemRU]
+    construct _ [trigger_condition]
+        Trigger [exportItemRC] [exportItemRU]
 
     by  
         Trigger
@@ -187,9 +185,9 @@ function modifyTrigger
 
     %%% If these all fail, it means the triggers depend on different Items, and therefore are already compatible
     construct TriggerBRC [trigger_condition]
-        TriggerB [changeTriggerRC]
+        Trigger [changeTriggerRC]
     construct TriggerBRU [trigger_condition]
-        TriggerB [changeTriggerRU]
+        Trigger [changeTriggerRU]
 
     by
         Trigger
