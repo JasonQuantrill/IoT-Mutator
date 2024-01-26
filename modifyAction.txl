@@ -69,3 +69,77 @@ function modifyActionMethodItem
     by
         ReplacementItem '. Action '( Value ')
 end function
+
+
+
+
+function modifyActionOpposite
+    replace [script_block]
+        Statements [repeat openHAB_declaration_or_statement]
+
+    construct ModifiedStatements [repeat openHAB_declaration_or_statement]
+        Statements [modifyActionFunctionItemOppositeValue] [modifyActionMethodItemOppositeValue]
+
+    by
+        ModifiedStatements
+end function
+
+
+function modifyActionFunctionItemOppositeValue
+    replace * [statement]
+        Action [id]
+        '( ItemB1 [expression], Value [expression] ')
+
+    import ReplacementItem [id]
+    import ReplacementValue [id]
+
+    where not
+        ReplacementValue [= "nothing"]
+
+    construct OppositeValue [id]
+        ReplacementValue [getOpposite]
+
+    by
+        Action '( ReplacementItem, OppositeValue ')
+end function
+
+
+function modifyActionMethodItemOppositeValue
+    replace * [statement]
+        Item [id]
+        '. Action [id] '( Value [expression] ')
+
+    import ReplacementItem [id]
+    import ReplacementValue [id]
+
+    where not
+        ReplacementValue [= "nothing"]
+
+    construct OppositeValue [id]
+        ReplacementValue [getOpposite]
+
+    by
+        ReplacementItem '. Action '( OppositeValue ')
+end function
+
+
+
+function getOpposite
+    replace [id]
+        Value [id]
+    
+    construct OppositeValue [id]
+        Value   [onToOff] %[OffToOn]
+                %[openToClosed] [ClosedToOpen]
+    by
+        OppositeValue
+end function
+
+function onToOff
+    replace [id]
+        Value [id]
+    where
+        Value [= "ON"]
+    by
+        OFF
+end function
