@@ -1,6 +1,7 @@
 % TXL OpenHAB Rules Grammar
 include "openhab.grm"
 include "extractTriggerData.txl"
+include "modifyAction.txl"
 
 
 %%% Weak Trigger Cascade - Action
@@ -10,14 +11,14 @@ include "extractTriggerData.txl"
 
 function main
 
-    %%% Define global variables
+    %%% Defining global variables for extractTriggerData
     %%% Construct and export with "nothing" id
-    construct TriggerItem [id]
+    construct ReplacementItem [id]
         nothing
-    export TriggerItem
-    construct TriggerToValue [id]
-        nothing
-    export TriggerToValue
+    export ReplacementItem
+    construct ReplacementValue [id]
+      nothing
+    export ReplacementValue
 
     replace [program] 
         P [program]
@@ -36,7 +37,7 @@ function createWeakTriggerCascade
         Rules [repeat OpenHAB_rule]
 
     construct ModifiedRules [repeat OpenHAB_rule]
-        Rules [modifyAction]
+        Rules [modifyActionWithTriggerData]
 
     by
         Package
@@ -46,7 +47,7 @@ function createWeakTriggerCascade
 end function
 
 
-function modifyAction
+function modifyActionWithTriggerData
     replace [repeat OpenHAB_rule]
         Rules [repeat OpenHAB_rule]
     
@@ -72,18 +73,16 @@ function modifyAction
         'then 
             ScriptB [script_block]
         'end
+        
 
-    deconstruct ScriptA
-        StatementsA [repeat openHAB_declaration_or_statement]
-    deconstruct ScriptB
-        StatementsB [repeat openHAB_declaration_or_statement]
-
-    %%% Extract data from second trigger
+    %%% Extract data from trigger
     construct _ [trigger_condition]
         TriggerB [extractTriggerData]
 
-    construct ModifiedStatements [repeat openHAB_declaration_or_statement]
-        StatementsA [changeActionFunctionItemValue] [changeActionFunctionItem]
+    %%% Modify action with data from trigger
+    construct ModifiedScript [script_block]
+        ScriptA [modifyAction]
+    
     
     by
         'rule NameA
@@ -91,7 +90,7 @@ function modifyAction
             TriggerA
             MoreTCA
         'then 
-            ModifiedStatements
+            ModifiedScript
         'end
 
         'rule NameB
@@ -103,37 +102,7 @@ function modifyAction
         'end
         RestB
 end function
-    
 
-function changeActionFunctionItemValue
-    replace * [statement]
-        Action [id]
-        '( ItemB1 [expression], Value [expression] ')
-
-    import TriggerItem [id]
-    import TriggerToValue [id]
-
-    where not
-        TriggerToValue [= "nothing"]
-
-    by
-        Action '( TriggerItem, TriggerToValue ')
-end function
-
-function changeActionFunctionItem
-    replace * [statement]
-        Action [id]
-        '( ItemB1 [expression], Value [expression] ')
-
-    import TriggerItem [id]
-    import TriggerToValue [id]
-
-    where
-        TriggerToValue [= "nothing"]
-
-    by
-        Action '( TriggerItem, Value ')
-end function
 
 
 
