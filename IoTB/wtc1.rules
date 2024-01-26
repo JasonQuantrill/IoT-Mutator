@@ -1,0 +1,18 @@
+rule "turn off light at 12am"
+when
+    Time cron "0 0 * * *"
+then
+    postUpdate(Hallway_Light, OFF)
+end
+
+
+
+
+rule "open window when tv turns on and room is hot"
+when
+    Item TV changed to ON
+then
+    if (Home_Temperature.state > 26) {
+        sendCommand(Window, OPEN)
+    }
+end
