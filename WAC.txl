@@ -19,8 +19,8 @@ include "modifyAction.txl"
 
 function main
 
-    %%% Define global variables
-    %%% Construct and export with "nothing" id
+    %%% Defining global variables
+    % Construct and export with "nothing" id
     construct ReplacementItem [id]
         nothing
     export ReplacementItem
@@ -111,7 +111,20 @@ function modifyActionWithActionData
         RestB
 end function
 
+
+
 function ensureCompatibleTriggers
+    
+    %%% Resetting global variables
+    % Construct and export with "nothing" id
+    construct ReplacementItem [id]
+        nothing
+    export ReplacementItem
+    construct ReplacementValue [id]
+        nothing
+    export ReplacementValue
+    
+    
     replace [repeat OpenHAB_rule]
         Rules [repeat OpenHAB_rule]
     
@@ -144,11 +157,17 @@ function ensureCompatibleTriggers
 
     %%% To perform all checks and edit Trigger ReplacementValue if necessary
     construct ModifiedTriggerB [trigger_condition]
-        TriggerB [modifyTrigger]
+        TriggerB [modifyCompatibleTrigger]
 
     by
         RuleA
-        RuleB
+        'rule NameB
+        'when
+            ModifiedTriggerB
+            MoreTCB
+        'then 
+            ScriptB
+        'end
         RestB
 end function
 
@@ -156,40 +175,47 @@ end function
 
 
 
-function modifyTrigger
+function modifyCompatibleTrigger
     replace [trigger_condition]
         Trigger [trigger_condition]
 
     %%% If these all fail, it means the triggers depend on different Items, and therefore are already compatible
-    construct TriggerBRC [trigger_condition]
-        Trigger [changeTriggerRC]
-    construct TriggerBRU [trigger_condition]
-        Trigger [changeTriggerRU]
+    construct ModifiedTrigger [trigger_condition]
+        Trigger [modifyCompatibleTriggerRC] [modifyCompatibleTriggerRU]
+                [passTrigger]
 
     by
-        Trigger
+        ModifiedTrigger
 end function
 
 
-function changeTriggerRC
-    import ReplacementItem [id]
-    
+function modifyCompatibleTriggerRC    
     replace [trigger_condition]
         'Item ItemId [id]
         'received 'command
         Command [opt command]
 
+    deconstruct Command
+        Value [id]
+
+    import ReplacementItem [id]
+    import ReplacementValue [id]
+
+    %%% Are the triggers acting on the same item?
     where
         ItemId [= ReplacementItem]
+    %%% If first trigger doesn't specify a value, triggers are compatible
+    where not
+        ReplacementValue [= "nothing"]
 
     by
         'Item ReplacementItem
         'received 'command
-        Command
+        ReplacementValue
 end function
 
 
-function changeTriggerRU
+function modifyCompatibleTriggerRU
     import ReplacementItem [id]
     
     replace [trigger_condition]
@@ -206,10 +232,20 @@ function changeTriggerRU
         State
 end function
 
+function passTrigger
+
+    %%% Passing function to pass original trigger in case no other patterns match
+    replace [trigger_condition]
+        Trigger  [trigger_condition]
+    by
+        Trigger
+end function
+
+
 function ensureCompatibleTriggerValues
     replace [trigger_condition]
         Trigger [trigger_condition]
     by
         Trigger
 end function
-
+    
