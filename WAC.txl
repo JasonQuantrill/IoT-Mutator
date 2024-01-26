@@ -30,7 +30,7 @@ function createWeakActionContradiction
         Rules [repeat OpenHAB_rule]
 
     construct ModifiedRules  [repeat OpenHAB_rule]
-        Rules [changeAction] [ensureCompatibleTriggers]
+        Rules [modifyAction] [ensureCompatibleTriggers]
     
     by
         Package
@@ -40,7 +40,7 @@ function createWeakActionContradiction
 end function
 
 
-function changeAction
+function modifyAction
     replace [repeat OpenHAB_rule]
         Rules [repeat OpenHAB_rule]
     
