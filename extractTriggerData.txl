@@ -38,9 +38,9 @@ function exportTriggerRCItemValue
     replace [trigger_condition]
         'Item ReplacementItem [id]
         'received 'command
-        TriggerTo [opt command]
+        Command [opt command]
 
-    deconstruct TriggerTo
+    deconstruct Command
         ReplacementValue [id]
 
     export ReplacementItem
@@ -49,7 +49,7 @@ function exportTriggerRCItemValue
     by
         'Item ReplacementItem
         'received 'command
-        TriggerTo
+        Command
 end function
 
 function exportTriggerRUItem
@@ -68,9 +68,9 @@ function exportTriggerRUItemValue
     replace [trigger_condition]
         'Item ReplacementItem [id]
         'received 'update
-        TriggerTo [opt state]
+        State [opt state]
 
-     deconstruct TriggerTo
+     deconstruct State
         ReplacementValue [id]
 
     export ReplacementItem
@@ -79,7 +79,7 @@ function exportTriggerRUItemValue
     by
         'Item ReplacementItem
         'received 'update
-        TriggerTo
+        State
 end function
 
 function exportTriggerCItem
