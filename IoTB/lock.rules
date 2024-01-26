@@ -17,6 +17,6 @@ when
 then
 if (now.getHourOfDay >= 19)
     {
-        Hallway_Light.sendCommand(OFF)
+        Hallway_Light.sendCommand(ON)
     }
 end
