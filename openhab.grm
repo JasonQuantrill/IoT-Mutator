@@ -77,7 +77,8 @@ end define
 define item_based_Triggers
 'Item [id] 'received 'command [opt command]|
 'Item [id] 'received 'update [opt state] |
-'Item [id]'changed [SPOFF][opt from_range][opt to_range][SPON]
+'Item [id] 'changed [opt from_range][opt to_range]
+%'Item [id] 'changed [SPOFF][opt from_range][opt to_range][SPON]
 end define
 
 define Time_based_triggers
