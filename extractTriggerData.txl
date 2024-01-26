@@ -1,10 +1,10 @@
 %%% Need to define following global variables in main
-%   construct TriggerItem [id]
+%   construct ReplacementItem [id]
 %       nothing
-%   export TriggerItem
-%   construct TriggerToValue [id]
+%   export ReplacementItem
+%   construct ReplacementValue [id]
 %       nothing
-%   export TriggerToValue
+%   export ReplacementValue
 
 
 function extractTriggerData
@@ -24,91 +24,91 @@ end function
 
 function exportTriggerRCItem
     replace [trigger_condition]
-        'Item TriggerItem [id]
+        'Item ReplacementItem [id]
         'received 'command
 
-    export TriggerItem
+    export ReplacementItem
 
     by
-        'Item TriggerItem
+        'Item ReplacementItem
         'received 'command
 end function
 
 function exportTriggerRCItemValue
     replace [trigger_condition]
-        'Item TriggerItem [id]
+        'Item ReplacementItem [id]
         'received 'command
         TriggerTo [opt command]
 
     deconstruct TriggerTo
-        TriggerToValue [id]
+        ReplacementValue [id]
 
-    export TriggerItem
-    export TriggerToValue
+    export ReplacementItem
+    export ReplacementValue
 
     by
-        'Item TriggerItem
+        'Item ReplacementItem
         'received 'command
         TriggerTo
 end function
 
 function exportTriggerRUItem
     replace [trigger_condition]
-        'Item TriggerItem [id]
+        'Item ReplacementItem [id]
         'received 'update
 
-    export TriggerItem
+    export ReplacementItem
     
     by
-        'Item TriggerItem
+        'Item ReplacementItem
         'received 'update
 end function
 
 function exportTriggerRUItemValue
     replace [trigger_condition]
-        'Item TriggerItem [id]
+        'Item ReplacementItem [id]
         'received 'update
         TriggerTo [opt state]
 
      deconstruct TriggerTo
-        TriggerToValue [id]
+        ReplacementValue [id]
 
-    export TriggerItem
-    export TriggerToValue
+    export ReplacementItem
+    export ReplacementValue
     
     by
-        'Item TriggerItem
+        'Item ReplacementItem
         'received 'update
         TriggerTo
 end function
 
 function exportTriggerCItem
     replace [trigger_condition]
-        'Item TriggerItem [id]
+        'Item ReplacementItem [id]
         'changed
 
-    export TriggerItem
+    export ReplacementItem
     
     by
-        'Item TriggerItem
+        'Item ReplacementItem
         'changed
 end function
 
 function exportTriggerCItemValue
     replace [trigger_condition]
-        'Item TriggerItem [id]
+        'Item ReplacementItem [id]
         'changed
         TriggerFrom [opt from_range]
         TriggerTo [opt to_range]
 
     deconstruct TriggerTo
-        'to TriggerToValue [id]
+        'to ReplacementValue [id]
 
-    export TriggerItem
-    export TriggerToValue
+    export ReplacementItem
+    export ReplacementValue
     
     by
-        'Item TriggerItem
+        'Item ReplacementItem
         'changed
         TriggerFrom
         TriggerTo
