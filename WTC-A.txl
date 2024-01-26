@@ -164,7 +164,7 @@ function exportTriggerRCItem
     export TriggerItem
 
     by
-        'Item ItemA2
+        'Item TriggerItem
         'received 'command
 end function
 
@@ -181,22 +181,21 @@ function exportTriggerRCItemValue
     export TriggerToValue
 
     by
-        'Item ItemA2
+        'Item TriggerItem
         'received 'command
+        TriggerTo
 end function
 
 function exportTriggerRUItem
     replace [trigger_condition]
         'Item TriggerItem [id]
         'received 'update
-        TriggerToValue [opt state]
 
     export TriggerItem
     
     by
-        'Item ItemA2
+        'Item TriggerItem
         'received 'update
-        TriggerToValue
 end function
 
 function exportTriggerRUItemValue
@@ -212,9 +211,9 @@ function exportTriggerRUItemValue
     export TriggerToValue
     
     by
-        'Item ItemA2
+        'Item TriggerItem
         'received 'update
-        TriggerToValue
+        TriggerTo
 end function
 
 function exportTriggerCItem
