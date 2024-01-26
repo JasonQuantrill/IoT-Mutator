@@ -85,7 +85,7 @@ function modifyAction
 
         'rule NameB
         'when
-            TriggerA
+            TriggerB
             MoreTCB
         'then 
             ScriptB
@@ -103,11 +103,14 @@ function changeItemB1
         '( ItemB1 [expression], Value [expression] ')
 
 
-    construct TriggerToExpression [expression]
-        _ [parse TriggerToValue]
+    construct TriggerToString [stringlit]
+        _ [quote TriggerToValue]
+    construct TriggerToExpression [id]
+        _ [unquote TriggerToString]
+    
 
     by
-        Action '( TriggerItem, TriggerToExpression )
+        Action '( TriggerItem, TriggerToExpression ')
 end function
 
 
@@ -165,7 +168,7 @@ function exportTriggerDataC
     replace [trigger_condition]
         'Item TriggerItem [id]
         'changed
-        TriggerFromValue [opt from_range]
+        TriggerFrom [opt from_range]
         TriggerTo [opt to_range]
 
     deconstruct TriggerTo
@@ -177,6 +180,6 @@ function exportTriggerDataC
     by
         'Item TriggerItem
         'changed
-        TriggerFromValue
-        TriggerToValue
+        TriggerFrom
+        TriggerTo
 end function
