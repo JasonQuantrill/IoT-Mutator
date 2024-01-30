@@ -1,6 +1,8 @@
 % TXL OpenHAB Rules Grammar
 include "openhab.grm"
+include "extractActionData.txl"
 include "modifyAction.txl"
+include "removeConditions2.txl
 
 function main
     replace [program] 
@@ -57,12 +59,8 @@ function modifyActionWithActionData
             ScriptB [script_block]
         'end
 
-    deconstruct ScriptB
-        StatementsB [repeat openHAB_declaration_or_statement]
-
     construct _ [script_block]
         ScriptA [extractActionData]
-
     construct ModifiedScript [script_block]
         ScriptB [modifyActionOpposite]
 
@@ -127,6 +125,57 @@ function forceIdenticalTriggers
             MoreTCA
         'then 
             ScriptB
+        'end
+        RestB
+end function
+
+function removeConditions
+    replace [repeat OpenHAB_rule]
+        Rules [repeat OpenHAB_rule]
+    
+    deconstruct Rules
+        RuleA [OpenHAB_rule] RestA [repeat OpenHAB_rule]
+    deconstruct RestA
+        RuleB [OpenHAB_rule] RestB [repeat OpenHAB_rule]
+
+    deconstruct RuleA
+        'rule NameA [rule_id]
+        'when
+            TriggerA [trigger_condition]
+            MoreTCA [repeat moreTC]
+        'then 
+            ScriptA [script_block]
+        'end
+
+    deconstruct RuleB
+        'rule NameB [rule_id]
+        'when
+            TriggerB [trigger_condition]
+            MoreTCB [repeat moreTC]
+        'then 
+            ScriptB [script_block]
+        'end
+
+    construct _ [script_block]
+        ScriptA [removeConditions2]
+    construct ModifiedScript [script_block]
+        ScriptB [removeConditions2]
+
+    by
+        'rule NameA
+        'when
+            TriggerA
+            MoreTCA
+        'then 
+            ScriptA
+        'end
+
+        'rule NameB
+        'when
+            TriggerB
+            MoreTCB
+        'then 
+            ModifiedScript
         'end
         RestB
 end function
