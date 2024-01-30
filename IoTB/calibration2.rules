@@ -10,7 +10,7 @@ import org.openhab.core.library.types.*
 // is corrected using a linear model
 rule "Adjust temperature Z-wave node 10"
 when
-	Item nSensor_Living_TempRaw received command ON
+	Item nSensor_Living_TempRaw changed to ON
 then
 	var Number T = nSensor_Living_TempRaw.state as DecimalType
 	var Number temp = (1.6 * T) - 8.5
@@ -21,7 +21,7 @@ end
 // is corrected using a linear model
 rule "Adjust temperature Z-wave node 12"
 when
-	Item nSensor_Living_TempRaw received command OFF
+	Item nSensor_Living_TempRaw received command
 then
 	var Number T = nSensor_FirstFl_TempRaw.state as DecimalType
 	var Number temp = (1.25 * T) - 3.3

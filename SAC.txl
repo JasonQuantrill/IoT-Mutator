@@ -1,17 +1,18 @@
 % TXL OpenHAB Rules Grammar
 include "openhab.grm"
+include "modifyAction.txl"
 
 function main
     replace [program] 
         P [program]
     construct NewP [program]
-        P [createWeakActionContradiction]
+        P [createStrongActionContradiction]
     by
         NewP
 end function
 
 
-function createWeakActionContradiction
+function createStrongActionContradiction
     replace [program]
         Package [opt package_header]
         Import [repeat import_declaration]
@@ -19,7 +20,7 @@ function createWeakActionContradiction
         Rules [repeat OpenHAB_rule]
 
     construct ModifiedRules  [repeat OpenHAB_rule]
-        Rules [changeAction] [forceIdenticalTriggers]
+        Rules [modifyActionWithActionData] [forceIdenticalTriggers]
     
     by
         Package
@@ -29,7 +30,7 @@ function createWeakActionContradiction
 end function
 
 
-function changeAction
+function modifyActionWithActionData
     replace [repeat OpenHAB_rule]
         Rules [repeat OpenHAB_rule]
     
@@ -56,16 +57,14 @@ function changeAction
             ScriptB [script_block]
         'end
 
-    deconstruct ScriptA
-        StatementsA [repeat openHAB_declaration_or_statement]
     deconstruct ScriptB
         StatementsB [repeat openHAB_declaration_or_statement]
 
-    construct exportItem [repeat openHAB_declaration_or_statement]
-        StatementsA [exportItemA]
+    construct _ [script_block]
+        ScriptA [extractActionData]
 
-    construct ModifiedStatements [repeat openHAB_declaration_or_statement]
-        StatementsB [changeItemB]
+    construct ModifiedScript [script_block]
+        ScriptB [modifyActionOpposite]
 
     by
         'rule NameA
@@ -73,7 +72,7 @@ function changeAction
             TriggerA
             MoreTCA
         'then 
-            StatementsA
+            ScriptA
         'end
 
         'rule NameB
@@ -81,31 +80,9 @@ function changeAction
             TriggerB
             MoreTCB
         'then 
-            ModifiedStatements
+            ModifiedScript
         'end
         RestB
-end function
-
-function exportItemA
-    replace * [statement]
-        Action [id]
-        '( ItemA [expression], Value [expression] ')
-
-    export ItemA
-
-    by
-        Action '( ItemA, Value )
-end function
-
-function changeItemB
-    import ItemA [expression]
-
-    replace * [statement]
-        Action [id]
-        '( ItemB [expression], Value [expression] ')
-
-    by
-        Action '( ItemA, Value )
 end function
 
 function forceIdenticalTriggers
@@ -147,10 +124,9 @@ function forceIdenticalTriggers
         'rule NameB
         'when
             TriggerA
-            MoreTCB
+            MoreTCA
         'then 
             ScriptB
         'end
         RestB
-
 end function
