@@ -2,7 +2,7 @@
 include "openhab.grm"
 include "extractActionData.txl"
 include "modifyAction.txl"
-include "removeConditions2.txl
+include "removeConditions.txl"
 
 function main
     replace [program] 
@@ -23,6 +23,7 @@ function createStrongActionContradiction
 
     construct ModifiedRules  [repeat OpenHAB_rule]
         Rules [modifyActionWithActionData] [forceIdenticalTriggers]
+                [removeConditions]
     
     by
         Package
@@ -156,9 +157,9 @@ function removeConditions
             ScriptB [script_block]
         'end
 
-    construct _ [script_block]
+    construct ModifiedScriptA [script_block]
         ScriptA [removeConditions2]
-    construct ModifiedScript [script_block]
+    construct ModifiedScriptB [script_block]
         ScriptB [removeConditions2]
 
     by
@@ -167,7 +168,7 @@ function removeConditions
             TriggerA
             MoreTCA
         'then 
-            ScriptA
+            ModifiedScriptA
         'end
 
         'rule NameB
@@ -175,7 +176,7 @@ function removeConditions
             TriggerB
             MoreTCB
         'then 
-            ModifiedScript
+            ModifiedScriptB
         'end
         RestB
 end function
