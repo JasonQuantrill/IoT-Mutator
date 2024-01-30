@@ -3,8 +3,7 @@ function removeConditions2
         Statements [repeat openHAB_declaration_or_statement]
 
     construct ModifiedStatements [repeat openHAB_declaration_or_statement]
-        Statements [modifyActionFunctionItemValue] [modifyActionFunctionItem]
-                    [modifyActionMethodItemValue] [modifyActionMethodItem]
+        Statements [removeSingleLineConditions]
 
     by
         ModifiedStatements
@@ -21,9 +20,9 @@ end function
 
 function removeMultiLineConditions
     replace * [statement]
-        'if '( [condition] ')     
-        [statement]
-    [opt else_clause]
+        'if '( Condition [condition] ')     
+        Statement [statement]
+    Else [opt else_clause]
 
     by
         Action '( ReplacementItem, ReplacementValue ')
