@@ -3,27 +3,55 @@ function removeConditions2
         Statements [repeat openHAB_declaration_or_statement]
 
     construct ModifiedStatements [repeat openHAB_declaration_or_statement]
-        Statements [removeSingleLineConditions]
+        Statements [removeSingleLineWithBracesConditions] [removeSingleLineConditions]
+                    [removeMultiLineConditions]
 
     by
         ModifiedStatements
 end function
 
-function removeSingleLineConditions
-    replace * [statement]
-        'if '( Condition [condition] ')     
-        Statement [statement]
+rule removeSingleLineWithBracesConditions
+    replace [statement]
+        'if '( Condition [condition] ')
+        '{
+            Statement [statement]
+        '}
 
     by
         Statement
-end function
+end rule
 
-function removeMultiLineConditions
-    replace * [statement]
+rule removeSingleLineConditions
+    replace [statement]
         'if '( Condition [condition] ')     
         Statement [statement]
-    Else [opt else_clause]
+
+    deconstruct Statement
+    '{ InnerStatements [statement] '}
 
     by
-        Action '( ReplacementItem, ReplacementValue ')
-end function
+        Statement
+end rule
+
+rule removeMultiLineConditions
+    replace [statement]
+        'if '( Condition [condition] ')
+        Statement [statement]
+
+        deconstruct Statement
+            Block_Statement [block_statement]
+
+        deconstruct Block_Statement
+            Block [block]
+
+        deconstruct Block
+            '{
+                Statements [repeat declaration_or_statement]
+            '}
+
+        
+
+    by
+        Statements
+end rule
+

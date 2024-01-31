@@ -1,37 +1,15 @@
-[unary_expression]
-[postfix_expression]
-[primary]
-[reference]
-[id] [repeat component]
+[script_block]
+[repeat openHAB_declaration_or_statement]
+[statement]
 
-[id] [method_argument]
-[id] '( [list argument] ')
+[if_statement]
+'if '( [condition] ')     
+        [statement]
+    [opt else_clause] 
 
-
-define argument
-        [expression]
-    |   [type_specifier]
-end define
-
-
-
-
-        'rule Name [stringlit]
-        'when
-            Trigger [trigger_condition]
-            MoreTC [repeat moreTC]
-        'then 
-            Script [script_block]
-        'end
-
-    %deconstruct Script
-        %Statements [repeat statement]
-    
-    by
-        'rule Name
-        'when
-            Trigger
-            MoreTC
-        'then 
-            Script
-        'end
+    [statement]
+    [block_statement]
+    [block]
+    '{ 
+        [repeat declaration_or_statement]
+    '}
