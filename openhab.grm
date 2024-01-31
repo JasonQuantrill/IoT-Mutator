@@ -157,7 +157,7 @@ redefine import_declaration
     |    [NL]    % observed
 end redefine
 redefine expression_statement
-    [expression]%[NL] %[end_of_statement] [NL]
+    [expression] [NL] %[end_of_statement] [NL]
 end redefine
 
 redefine package_header
