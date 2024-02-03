@@ -1,33 +1,43 @@
 function removeConditions2
     replace [script_block]
-        Statements [repeat openHAB_declaration_or_statement]
+        %Statements [repeat openHAB_declaration_or_statement]
 
-    construct ModifiedStatements [repeat openHAB_declaration_or_statement]
-        Statements [removeConditionsWithBraces] [removeConditionsNoBraces]
+    'if '( Condition [condition] ')
+        '{
+            Block [block]
+        '}
+    
+        %deconstruct Block
+            %Statements [repeat declaration_or_statement]
 
-    by
-        ModifiedStatements
+        by
+            logInfo("Front Door", "Locking.")
+    
+
+    %construct ModifiedStatements [repeat openHAB_declaration_or_statement]
+    %    Statements [removeSingleLineWithBracesConditions] [removeSingleLineConditions]
+    %                [removeMultiLineConditions]
+
+    %by
+    %    ModifiedStatements
 end function
 
-rule removeConditionsWithBraces
+rule removeSingleLineWithBracesConditions
     replace [statement]
         'if '( Condition [condition] ')
-            '{ 
-                Statements [repeat declaration_or_statement]
-            '}
-            Else [opt else_clause]
-
-        deconstruct Statements
-            ExtractedStatements [statement]
+            Block [block]
     by
-        ExtractedStatements
+        somestuff
 end rule
 
-rule removeConditionsNoBraces
+rule removeSingleLineConditions
     replace [statement]
-        'if '( Condition [condition] ')     
-            Statement [statement]
-            Else [opt else_clause]
+        'if '( Condition [condition] ')
+        Statement [statement]
+
+    deconstruct Statement
+    '{ InnerStatements [statement] '}
+
     by
         Statement
 end rule

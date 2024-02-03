@@ -5,7 +5,7 @@ include "modifyAction.txl"
 include "removeConditions.txl"
 
 function main
-    replace [program] 
+    replace [program]
         P [program]
     construct NewP [program]
         P [createStrongActionContradiction]
