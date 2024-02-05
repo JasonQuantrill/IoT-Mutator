@@ -2,6 +2,7 @@
 [repeat openHAB_declaration_or_statement]
 [statement]
 
+->1
 [if_statement]
 'if '( [condition] ')     
         [statement]
@@ -13,3 +14,7 @@
     '{ 
         [repeat declaration_or_statement]
     '}
+->2
+[expression_statement]
+[expression] [NL]
+[assignment_expression]
