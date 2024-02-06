@@ -15,6 +15,7 @@
         [repeat declaration_or_statement]
     '}
 ->2
+[statement]
 [expression_statement]
 [expression] [NL]
 [assignment_expression]
