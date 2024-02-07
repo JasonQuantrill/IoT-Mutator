@@ -3,7 +3,7 @@ function removeConditions2
         Statements [repeat openHAB_declaration_or_statement]
 
     construct ModifiedStatements [repeat openHAB_declaration_or_statement]
-        Statements [something]
+        Statements [keepStatements]
 
     by
         ModifiedStatements
@@ -29,8 +29,11 @@ function processStatements Statement [openHAB_declaration_or_statement]
     replace [repeat openHAB_declaration_or_statement]
         Statements [repeat openHAB_declaration_or_statement]
 
+    construct StatementCast [repeat openHAB_declaration_or_statement]
+        Statement
+
     construct ProcessedStatement [repeat openHAB_declaration_or_statement]
-        
+        StatementCast [something]
 
 
     by
