@@ -4,6 +4,7 @@ include "extractTriggerData.txl"
 include "extractActionData.txl"
 include "modifyAction.txl"
 include "modifyTrigger.txl"
+include "removeConditions.txl"
 
 
 %%% Work still to do:
@@ -113,7 +114,6 @@ function modifyActionWithActionData
 end function
 
 
-
 function ensureCompatibleTriggers
     
     %%% Resetting global variables
@@ -170,5 +170,79 @@ function ensureCompatibleTriggers
             ScriptB
         'end
         RestB
+end function
+
+function identicalConditions
+    replace [repeat OpenHAB_rule]
+        Rules [repeat OpenHAB_rule]
+    
+    deconstruct Rules
+        RuleA [OpenHAB_rule] RestA [repeat OpenHAB_rule]
+    deconstruct RestA
+        RuleB [OpenHAB_rule] RestB [repeat OpenHAB_rule]
+
+    deconstruct RuleA
+        'rule NameA [rule_id]
+        'when
+            TriggerA [trigger_condition]
+            MoreTCA [repeat moreTC]
+        'then 
+            ScriptA [script_block]
+        'end
+
+    deconstruct RuleB
+        'rule NameB [rule_id]
+        'when
+            TriggerB [trigger_condition]
+            MoreTCB [repeat moreTC]
+        'then 
+            ScriptB [script_block]
+        'end
+
+    construct _ [script_block]
+        ScriptA [extractConditionData]
+    construct ModifiedScriptB [script_block]
+        ScriptB [identicalConditions2 ScriptA]
+
+    by
+        'rule NameA
+        'when
+            TriggerA
+            MoreTCA
+        'then 
+            ScriptA
+        'end
+
+        'rule NameB
+        'when
+            TriggerB
+            MoreTCB
+        'then 
+            ModifiedScriptB
+        'end
+        RestB
+end function
+
+function extractConditionData
+    replace [script_block]
+        Statements [repeat openHAB_declaration_or_statement]
+
+    construct _ [openHAB_declaration_or_statement]
+        _ [exportCondition each Statements]
+
+    by
+        Statements
+end function
+
+function exportCondition
+    replace [repeat openHAB_declaration_or_statement]
+        'if '( ReplacementCondition [condition] ')
+            Block [block]
+
+    export ReplacementCondition
+    
+    by
+        'if '( ReplacementCondition ')
+            Block
 end function
     
