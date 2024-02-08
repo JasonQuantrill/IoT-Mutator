@@ -49,6 +49,7 @@ function createWeakActionContradiction
     construct ModifiedRules  [repeat OpenHAB_rule]
         Rules   [modifyActionWithActionData]
                 [ensureCompatibleTriggers]
+                [identicalConditions]
     
     by
         Package
@@ -202,7 +203,7 @@ function identicalConditions
     construct _ [script_block]
         ScriptA [extractConditionData]
     construct ModifiedScriptB [script_block]
-        ScriptB [identicalConditions2 ScriptA]
+        ScriptB [identicalConditions2]
 
     by
         'rule NameA
@@ -227,22 +228,24 @@ function extractConditionData
     replace [script_block]
         Statements [repeat openHAB_declaration_or_statement]
 
-    construct _ [openHAB_declaration_or_statement]
-        _ [exportCondition each Statements]
+    construct _ [repeat openHAB_declaration_or_statement]
+        Statements [exportCondition each Statements]
 
     by
         Statements
 end function
 
-function exportCondition
+function exportCondition Statement [openHAB_declaration_or_statement]
     replace [repeat openHAB_declaration_or_statement]
-        'if '( ReplacementCondition [condition] ')
-            Block [block]
+        Statements [repeat openHAB_declaration_or_statement]
+
+        deconstruct Statement
+            'if '( ReplacementCondition [condition] ')
+                Block [block]
 
     export ReplacementCondition
     
     by
-        'if '( ReplacementCondition ')
-            Block
+        Statements
 end function
     

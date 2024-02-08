@@ -2,15 +2,13 @@ rule "unlock door in foyer"
 when
     Item Foyer_Light changed to ON
 then
-    logInfo("doingggg.", "things")
-    Hallway.postUpdate(ON)
+    logInfo("Log", "1")
     if (now.getHourOfDay >= 7 && now.getHourOfDay <= 20)
     {
         logInfo("Front Door", "Locking.")
         Front_Door_Lock.postUpdate(ON)
     }
-    logInfo("stufffff.","morestuffff")
-    Things.postUpdate(ON)
+    logInfo("Log","2")
 end
 
 
