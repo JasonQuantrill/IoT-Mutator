@@ -50,6 +50,30 @@ class TestSAC(unittest.TestCase):
 
         self.assertEqual(test_result.stdout.decode(), actual_result)
 
+    def test_SingleConditionMultiState(self):
+        test_case = os.path.join(self.base_folder, 'testsuite', 'SingleConditionMultiStates.rules')
+        
+        test_result = subprocess.run(['txl', test_case, self.test_prog], stdout=subprocess.PIPE)
+        actual_result = (
+                 'rule "Rule A"\r\n'
+                 'when\r\n'
+                 '    Item ItemA1 changed to ON\r\n'
+                 'then\r\n'
+                 '    logInfo ("ItemA2", "Turning On")'
+                 '    ItemA2.postUpdate (ON)\r\n'
+                 'end\r\n'
+                 '\r\n'
+                 'rule "Rule B"\r\n'
+                 'when\r\n'
+                 '    Item ItemA1 changed to ON\r\n'
+                 'then\r\n'
+                 '    logInfo("ItemB2","Turning On")'
+                 '    ItemA2.sendCommand (OFF)\r\n'
+                 'end\r\n'
+                 '\r\n')
+
+        self.assertEqual(test_result.stdout.decode(), actual_result)
+
 
 
 if __name__ == '__main__':
