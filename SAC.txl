@@ -22,7 +22,8 @@ function createStrongActionContradiction
         Rules [repeat OpenHAB_rule]
 
     construct ModifiedRules  [repeat OpenHAB_rule]
-        Rules [modifyActionWithActionData] [forceIdenticalTriggers]
+        Rules   [modifyActionWithActionData]
+                [forceIdenticalTriggers]
                 [removeConditions]
     
     by

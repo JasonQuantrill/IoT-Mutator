@@ -156,6 +156,7 @@ redefine import_declaration
         'import [opt 'static] [imported_name] [opt dot_star] [NL][NL]
     |    [NL]    % observed
 end redefine
+
 redefine expression_statement
     [expression] [NL] %[end_of_statement] [NL]
 end redefine

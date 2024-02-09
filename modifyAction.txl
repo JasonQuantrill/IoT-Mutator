@@ -108,6 +108,10 @@ function modifyActionFunctionItemOppositeValue
         Action [id]
         '( ItemB1 [expression], Value [expression] ')
 
+    % check to see if Action is an action that changes an Item
+    where
+        Action [= "postUpdate"] [= "sendCommand"]
+
     import ReplacementItem [id]
     import ReplacementValue [id]
 
@@ -126,6 +130,10 @@ function modifyActionMethodItemOppositeValue
     replace * [statement]
         Item [id]
         '. Action [id] '( Value [expression] ')
+
+    % check to see if Action is an action that changes an Item
+    where
+        Action [= "postUpdate"] [= "sendCommand"]
 
     import ReplacementItem [id]
     import ReplacementValue [id]

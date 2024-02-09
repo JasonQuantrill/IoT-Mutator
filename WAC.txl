@@ -2,10 +2,11 @@
 include "openhab.grm"
 include "extractTriggerData.txl"
 include "extractActionData.txl"
+include "extractConditionData.txl"
 include "modifyAction.txl"
 include "modifyTrigger.txl"
 include "modifyConditions.txl"
-include "extractConditionData.txl"
+
 
 
 %%% Work still to do:
