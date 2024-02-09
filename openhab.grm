@@ -42,7 +42,7 @@ define OpenHAB_rule
 'when [NL]
     [IN][trigger_condition][repeat moreTC][EX][NL]
 'then [NL]
-    [IN][script_block][EX][NL]
+    [IN][script_block][EX] %[NL]
 'end [NL][NL]
 end define
 
@@ -120,13 +120,13 @@ define triggerChannel
 end define
 
 define script_block
-[repeat openHAB_declaration_or_statement][NL]
+[repeat openHAB_declaration_or_statement] %[NL]
 %[repeat statement][NL]
 end define
 
 define openHAB_declaration_or_statement
-	[variable_declaration] [NL]
-	|[statement][NL]
+	[variable_declaration] %[NL]
+	|[statement] %[NL]
 end define
 
 define command
@@ -248,4 +248,14 @@ redefine  argument
         ...
         | [if_statement]
 end redefine
+
+
+% Additional redefinitions
+redefine if_statement
+    'if '( [condition] ') [NL]
+        [statement]
+    [opt else_clause]      
+end define
+
+
 % END
