@@ -1,0 +1,24 @@
+rule "Rule A"
+when
+    Item ItemA1 changed to ON
+then
+    if (ConditionA1 && ConditionA2)
+    {
+        logInfo("ItemA2","Turning On")
+        ItemA2.postUpdate(ON)
+    }
+end
+
+
+
+
+rule "Rule B"
+when
+    Item ItemB1 changed to OFF
+then
+if (ConditionB)
+    {
+        logInfo("ItemB2","Turning On")
+        ItemB2.sendCommand(ON)
+    }
+end

@@ -1,0 +1,16 @@
+rule "Rule A"
+when
+    Item ItemA1 changed to ON
+then
+    ItemA2.postUpdate(ON)
+end
+
+
+
+
+rule "Rule B"
+when
+    Item ItemB1 changed to OFF
+then
+    ItemB2.sendCommand(ON)
+end
