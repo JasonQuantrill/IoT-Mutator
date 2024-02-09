@@ -15,9 +15,14 @@ function modifyActionFunctionItemValue
         Action [id]
         '( ItemB1 [expression], Value [expression] ')
 
+    % check to see if Action is an action that changes an Item
+    where
+        Action [= "postUpdate"] [= "sendCommand"]
+
     import ReplacementItem [id]
     import ReplacementValue [id]
 
+    % check to see if replacement value has been assigned
     where not
         ReplacementValue [= "nothing"]
 
@@ -30,9 +35,14 @@ function modifyActionFunctionItem
         Action [id]
         '( ItemB1 [expression], Value [expression] ')
 
+    % check to see if Action is an action that changes an Item
+    where
+        Action [= "postUpdate"] [= "sendCommand"]
+
     import ReplacementItem [id]
     import ReplacementValue [id]
 
+    %%% Keep value the same if replacement value is not specified
     where
         ReplacementValue [= "nothing"]
 
@@ -44,6 +54,10 @@ function modifyActionMethodItemValue
     replace * [statement]
         Item [id]
         '. Action [id] '( Value [expression] ')
+
+    % check to see if Action is an action that changes an Item
+    where
+        Action [= "postUpdate"] [= "sendCommand"]
 
     import ReplacementItem [id]
     import ReplacementValue [id]
@@ -59,6 +73,10 @@ function modifyActionMethodItem
     replace * [statement]
         Item [id]
         '. Action [id] '( Value [expression] ')
+
+    % check to see if Action is an action that changes an Item
+    where
+        Action [= "postUpdate"] [= "sendCommand"]
 
     import ReplacementItem [id]
     import ReplacementValue [id]
