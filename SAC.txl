@@ -2,7 +2,7 @@
 include "openhab.grm"
 include "extractActionData.txl"
 include "modifyAction.txl"
-include "removeConditions.txl"
+include "modifyConditions.txl"
 
 function main
     replace [program]

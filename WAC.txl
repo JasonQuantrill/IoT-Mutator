@@ -4,7 +4,7 @@ include "extractTriggerData.txl"
 include "extractActionData.txl"
 include "modifyAction.txl"
 include "modifyTrigger.txl"
-include "removeConditions.txl"
+include "modifyConditions.txl"
 
 
 %%% Work still to do:

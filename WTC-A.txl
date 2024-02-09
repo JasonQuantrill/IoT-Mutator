@@ -2,11 +2,8 @@
 include "openhab.grm"
 include "extractTriggerData.txl"
 include "modifyAction.txl"
-
-
-%%% Weak Trigger Cascade - Action
-% Modify Action
-% Ensure Compatible Conditions
+include "extractConditionData.txl"
+include "modifyConditions.txl"
 
 
 function main
