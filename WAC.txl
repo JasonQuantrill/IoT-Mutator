@@ -8,19 +8,6 @@ include "modifyTrigger.txl"
 include "modifyConditions.txl"
 
 
-
-%%% Work still to do:
-% create pattern matches for additional trigger patterns
-%       opt state
-%       opt command
-%       changed
-%       time & system based trigs
-% pattern matches for all action patterns
-% ensuring different values
-% ensure compatible triggers
-
-
-
 function main
 
     %%% Defining global variables
