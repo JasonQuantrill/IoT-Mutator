@@ -7,13 +7,13 @@ function identicalConditions2
     construct EmptyStatements [repeat openHAB_declaration_or_statement]
         % none
     construct ProcessedStatements [repeat openHAB_declaration_or_statement]
-        EmptyStatements [replaceCondition each Statements]
+        EmptyStatements [ProcessStatement each Statements]
 
     by
         ProcessedStatements   
 end function
 
-function replaceCondition Statement [openHAB_declaration_or_statement]
+function ProcessStatement Statement [openHAB_declaration_or_statement]
     replace [repeat openHAB_declaration_or_statement]
         Statements [repeat openHAB_declaration_or_statement]
 
@@ -24,13 +24,41 @@ function replaceCondition Statement [openHAB_declaration_or_statement]
     import ReplacementCondition [condition]
 
     construct ModifiedStatement [openHAB_declaration_or_statement]
-        'if '( ReplacementCondition ')
-            Block
+        Statement   [changeIfStatement]
+                    [keepStatement]
     
     by
         Statements [. ModifiedStatement]
 end function
 
+function keepStatement
+    replace [openHAB_declaration_or_statement]
+        Statement [openHAB_declaration_or_statement]
+
+    where not
+        Statement [isIfStatement]
+
+    by
+        Statement
+end function
+
+function changeIfStatement
+    replace [openHAB_declaration_or_statement]
+        'if '( Condition [condition] ')
+            Block [block]
+
+    import ReplacementCondition [condition]
+
+    by
+        'if '( ReplacementCondition ')
+            Block
+end function
+
+function isIfStatement
+    match [openHAB_declaration_or_statement]
+        IfStatement [if_statement]
+end function
+        
 
 
 
