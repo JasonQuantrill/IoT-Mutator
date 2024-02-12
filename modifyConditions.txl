@@ -17,12 +17,6 @@ function ProcessStatement Statement [openHAB_declaration_or_statement]
     replace [repeat openHAB_declaration_or_statement]
         Statements [repeat openHAB_declaration_or_statement]
 
-    deconstruct Statement
-        'if '( Condition [condition] ')
-            Block [block]
-
-    import ReplacementCondition [condition]
-
     construct ModifiedStatement [openHAB_declaration_or_statement]
         Statement   [changeIfStatement]
                     [keepStatement]
