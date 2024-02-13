@@ -1,3 +1,19 @@
+function modifyConditionWithActionData2
+    replace * [repeat openHAB_declaration_or_statement]
+        'if '( Condition [condition] ')
+            Block [block]
+
+    import ReplacementItem [id]
+    import ReplacementValue [id]
+
+    by
+        'if '( ReplacementItem '.state '== ReplacementValue')
+            Block
+end function
+
+
+
+
 function identicalConditions2
     replace [script_block]
         Statements [repeat openHAB_declaration_or_statement]
