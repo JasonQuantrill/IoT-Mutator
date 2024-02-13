@@ -16,6 +16,9 @@ function main
     construct ReplacementValue [id]
       nothing
     export ReplacementValue
+    construct ReplacementAction [id]
+      nothing
+    export ReplacementAction
 
     replace [program] 
         P [program]
@@ -78,11 +81,8 @@ function modifyTriggerWithActionData
         ScriptA [extractActionData]
 
     %%% Modify trigger with data from action
-    %construct ModifiedTrigger [trigger_condition]
-    %    TriggerB [trigger_condition]
-
-    import ReplacementItem [id]
-    import ReplacementValue [id]
+    construct ModifiedTrigger [trigger_condition]
+        TriggerB [modifyTrigger]
     
     
     by
@@ -96,7 +96,7 @@ function modifyTriggerWithActionData
 
         'rule NameB
         'when
-            'Item ReplacementItem 'changed 'to ReplacementValue
+            ModifiedTrigger
             MoreTCB
         'then 
             ScriptB

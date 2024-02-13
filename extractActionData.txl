@@ -11,24 +11,26 @@ end function
 
 function exportActionFunctionItemValue
     replace * [statement]
-        Action [id]
+        ReplacementAction [id]
         '( ReplacementItem [id], ReplacementValue [id] ')
-
+    
+    export ReplacementAction
     export ReplacementItem
     export ReplacementValue
 
     by
-        Action '( ReplacementItem, ReplacementValue )
+        ReplacementAction '( ReplacementItem, ReplacementValue )
 end function
 
 function exportActionMethodItemValue
     replace * [statement]
         ReplacementItem [id]
-        '. Action [id] '( ReplacementValue [id] ')
+        '. ReplacementAction [id] '( ReplacementValue [id] ')
 
+    export ReplacementAction
     export ReplacementItem
     export ReplacementValue
 
     by
-        ReplacementItem '. Action '( ReplacementValue ')
+        ReplacementItem '. ReplacementAction '( ReplacementValue ')
 end function

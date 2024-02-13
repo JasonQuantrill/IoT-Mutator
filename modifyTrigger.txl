@@ -1,3 +1,48 @@
+function modifyTrigger
+    replace [trigger_condition]
+        Trigger [trigger_condition]
+
+    %%% If these all fail, it means the triggers depend on different Items, and therefore are already compatible
+    construct ModifiedTrigger [trigger_condition]
+        Trigger [modifyTriggerSC] [modifyTriggerPU]
+    by
+        ModifiedTrigger
+end function
+
+function modifyTriggerSC
+    replace [trigger_condition]
+        Trigger [trigger_condition]
+
+    import ReplacementAction [id]
+    where
+        ReplacementAction [= "sendCommand"]
+
+    import ReplacementItem [id]
+    import ReplacementValue [id]
+
+    by
+        'Item ReplacementItem
+        'received 'command
+        ReplacementValue
+end function 
+
+function modifyTriggerPU
+    replace [trigger_condition]
+        Trigger [trigger_condition]
+
+    import ReplacementAction [id]
+    where
+        ReplacementAction [= "postUpdate"]
+
+    import ReplacementItem [id]
+    import ReplacementValue [id]
+
+    by
+        'Item ReplacementItem
+        'received 'update
+        ReplacementValue
+end function 
+
 function modifyCompatibleTrigger
     replace [trigger_condition]
         Trigger [trigger_condition]
@@ -5,7 +50,7 @@ function modifyCompatibleTrigger
     %%% If these all fail, it means the triggers depend on different Items, and therefore are already compatible
     construct ModifiedTrigger [trigger_condition]
         Trigger [modifyCompatibleTriggerRC] [modifyCompatibleTriggerRU]
-                [passTrigger]
+                [modifyCompatibleTriggerC] [passTrigger]
 
     by
         ModifiedTrigger
