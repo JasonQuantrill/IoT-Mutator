@@ -7,7 +7,7 @@ function modifyConditionWithActionData2
     import ReplacementValue [id]
 
     by
-        'if '( ReplacementItem '.state '== ReplacementValue')
+        'if '( ReplacementItem '. 'state '== ReplacementValue')
             Block
 end function
 
