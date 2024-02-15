@@ -4,7 +4,7 @@ import subprocess
 
 class TestWAC(unittest.TestCase):        
     base_folder = os.path.join('C:', os.sep, 'Users', 'jason', 'OneDrive', 'Documents', 'TMU', 'CPS40A', 'IoT-Mutator')
-    test_prog = os.path.join(base_folder, 'WAC.txl')
+    test_prog = os.path.join(base_folder, 'WAC.txl') 
     
     def test_Base(self):
         test_case = os.path.join(self.base_folder, 'testsuite', 'Base.rules')
