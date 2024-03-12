@@ -41,7 +41,6 @@ def separate_rules(rules):
                 # Extract the rule starting from "rule" to the end of the block
                 rule = trimmed_block[rule_start_index:] + '\nend'  # Append 'end' back to the rule
                 rules_list.append(rule)
-
     return rules_list
 
 
@@ -50,9 +49,20 @@ def mutate_rules(rules_list, rule_A, rule_B, mutation_mode):
         file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
     
     mutated_rules = str(subprocess.run(['txl', 'mutation.rules', mutation_mode], stdout=subprocess.PIPE))
-    mutated_rules = separate_rules(mutated_rules)
+    mutated_rules = separate_rules(mutated_rules.replace('\\n', '\n').replace('\\r', '\r'))
     return mutated_rules
 
+def determine_first_rule_eligibility():
+    # search for rule with sendcommand(Item, ON/OFF) type of pattern
+    # skip rules with Heating?.members.forEach(heating| kind of pattern
+    pass
+
+def determine_first_rule_eligibility():
+    # can perhaps be any
+    pass
+
+######
+# Main
 
 rules_file = 'IoTB/demo.rules'
 rules = get_rules(rules_file)
@@ -64,7 +74,8 @@ rule_A = 0
 rule_B = 1
 
 # Specify which type of mutation is being performed
-mutation_mode = 'SAC.txl'
+mutation_mode = 'WAC.txl'
 
 mutated_rules = mutate_rules(rules_list, rule_A, rule_B, mutation_mode)
-print(len(mutated_rules))
+print(mutated_rules[0])
+print(mutated_rules[1])
