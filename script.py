@@ -52,14 +52,58 @@ def mutate_rules(rules_list, rule_A, rule_B, mutation_mode):
     mutated_rules = separate_rules(mutated_rules.replace('\\n', '\n').replace('\\r', '\r'))
     return mutated_rules
 
-def determine_first_rule_eligibility():
-    # search for rule with sendcommand(Item, ON/OFF) type of pattern
-    # skip rules with Heating?.members.forEach(heating| kind of pattern
-    pass
 
-def determine_first_rule_eligibility():
-    # can perhaps be any
-    pass
+def determine_first_rule_eligibility(rules_list):
+    eligible_rules_indices = []
+
+    # Create list of different formats of action commands
+    commands = ['sendCommand', 'postUpdate']
+    command_patterns = '|'.join(commands)
+
+    # Create list of different formats of action values
+    values = ['ON', 'OFF', 'OPEN', 'CLOSED']
+    value_patterns = '|'.join(values)
+
+    # Create exclusion pattern
+    foreach_pattern = r'\?.members.forEach\('
+    
+    pattern = command_patterns + r'\(([^)]+),' + value_patterns + r'\)'
+    print(pattern)
+
+    for i in range(len(rules_list)):
+        
+        # Exclude rules with this kind of pattern because txl won't parse it
+        exclusion_match = re.findall(foreach_pattern, rules_list[i])
+        if exclusion_match:
+            print(f'Rule {i+1}: Exclusion')
+            continue
+
+        # Find matches and add them to eligible list
+        matches = re.findall(pattern, rules_list[i])
+        if matches:
+            print(f'Rule {i+1}: ', matches)
+            eligible_rules_indices.append(i)
+
+    print('Rule_A indices: ', eligible_rules_indices)
+    return eligible_rules_indices
+
+
+def determine_second_rule_eligibility(rules_list):
+    eligible_rules_indices = []
+
+    # Create exclusion pattern
+    foreach_pattern = r'\?.members.forEach\('
+
+    for i in range(len(rules_list)):
+        # Exclude rules with this kind of pattern because txl won't parse it
+        exclusion_match = re.findall(foreach_pattern, rules_list[i])
+        if not exclusion_match:
+            eligible_rules_indices.append(i)
+            
+    # in a rule with multiple actions, just select the first one?
+    # how to make sure that if there are conditions, that the condition that applies to the mutated action is mutated
+    print('Rule_B indices: ', eligible_rules_indices)
+    return eligible_rules_indices
 
 ######
 # Main
@@ -69,13 +113,22 @@ rules = get_rules(rules_file)
 
 rules_list = separate_rules(rules)
 
-# Specify which 2 rules to mutate
-rule_A = 0
-rule_B = 1
+# Determine eligible rules that function with txl mutator
+eligible_rule_A = determine_first_rule_eligibility(rules_list)
+eligible_rule_B = determine_second_rule_eligibility(rules_list)
+
+# From eligible rules, select which 2 rules to mutate
+rule_A = random.choice(eligible_rule_A)
+rule_B = random.choice(eligible_rule_B)
 
 # Specify which type of mutation is being performed
-mutation_mode = 'WAC.txl'
+mutation_mode = 'SAC.txl'
 
 mutated_rules = mutate_rules(rules_list, rule_A, rule_B, mutation_mode)
-print(mutated_rules[0])
+
+rules_list[rule_A] = mutated_rules[0]
+rules_list[rule_B] = mutated_rules[1]
+
+
+print(mutated_rules[0], '\n')
 print(mutated_rules[1])
