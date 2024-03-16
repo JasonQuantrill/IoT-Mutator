@@ -1,3 +1,4 @@
+%% Attempt to apply all of the different patterns
 function modifyAction
     replace [script_block]
         Statements [repeat openHAB_declaration_or_statement]
@@ -10,6 +11,12 @@ function modifyAction
         ModifiedStatements
 end function
 
+%%%%%%
+% Main patterns
+%%%%%%
+
+%% Changes the Item and Value for patterns such as
+%% postUpdate(Item, Value)
 function modifyActionFunctionItemValue
     replace * [statement]
         Action [id]
@@ -30,6 +37,9 @@ function modifyActionFunctionItemValue
         Action '( ReplacementItem, ReplacementValue ')
 end function
 
+
+%% Changes only the Item for patterns such as
+%% postUpdate(Item, Value)
 function modifyActionFunctionItem
     replace * [statement]
         Action [id]
@@ -50,6 +60,9 @@ function modifyActionFunctionItem
         Action '( ReplacementItem, Value ')
 end function
 
+
+%% Changes the Item and Value for patterns such as
+%% Item.postUpdate(Value)
 function modifyActionMethodItemValue
     replace * [statement]
         Item [id]
@@ -69,6 +82,9 @@ function modifyActionMethodItemValue
         ReplacementItem '. Action '( ReplacementValue ')
 end function
 
+
+%% Changes only the Item for patterns such as
+%% Item.postUpdate(Value)
 function modifyActionMethodItem
     replace * [statement]
         Item [id]
@@ -89,8 +105,11 @@ function modifyActionMethodItem
 end function
 
 
+%%%%%%
+% Modifying the action value
+%%%%%%
 
-
+%% Applying different patterns
 function modifyActionOpposite
     replace [script_block]
         Statements [repeat openHAB_declaration_or_statement]
@@ -103,6 +122,8 @@ function modifyActionOpposite
 end function
 
 
+%% Change action value for patterns such as
+%% postUpdate(Item,ON)
 function modifyActionFunctionItemOppositeValue
     replace * [statement]
         Action [id]
@@ -126,6 +147,8 @@ function modifyActionFunctionItemOppositeValue
 end function
 
 
+%% Change action value for patterns such as
+%% Item.postUpdate(ON)
 function modifyActionMethodItemOppositeValue
     replace * [statement]
         Item [id]
@@ -149,17 +172,18 @@ function modifyActionMethodItemOppositeValue
 end function
 
 
-
+%% Get the opposite value of the action value
 function getOpposite
     replace [id]
         Value [id]
     
     construct OppositeValue [id]
-        Value   [onToOff] %[OffToOn]
-                %[openToClosed] [ClosedToOpen]
+        Value   [onToOff] [offToOn]
+                [openToClosed] [closedToOpen]
     by
         OppositeValue
 end function
+
 
 function onToOff
     replace [id]
@@ -168,4 +192,31 @@ function onToOff
         Value [= "ON"]
     by
         OFF
+end function
+
+function offToOn
+    replace [id]
+        Value [id]
+    where
+        Value [= "OFF"]
+    by
+        ON
+end function
+
+function openToClosed
+    replace [id]
+        Value [id]
+    where
+        Value [= "OPEN"]
+    by
+        CLOSED
+end function
+
+function closedToOpen
+    replace [id]
+        Value [id]
+    where
+        Value [= "CLOSED"]
+    by
+        OPEN
 end function
