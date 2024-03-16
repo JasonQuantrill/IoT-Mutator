@@ -1,0 +1,19 @@
+rule "rPCControl"
+when
+	Item PCControl received command
+then 
+    logInfo("rule rPCControl", "command "+receivedCommand)
+	switch (receivedCommand) {
+		case "reboot" : 
+			publish("broker", "winthing/system/commands/reboot", "") 
+  		case "shutdown" :
+			publish("broker", "winthing/system/commands/shutdown", "")
+		case "netflix" : {
+			publish("broker", "winthing/system/commands/run", "[\"Netflix.lnk\",\"\",\"\"]")
+                        // Wait 5 seconds and send WIN+SHIFT+ENTER to go Fullscreen
+                        Thread::sleep(5000)
+                        publish("broker", "winthing/keyboard/commands/press_keys", "[\"LWIN\",\"LSHIFT\",\"ENTER\"]")
+   
+        }
+	}
+end

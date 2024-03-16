@@ -1,15 +1,67 @@
-rule "open window when room is hot"
+rule "Irrigation - cascading"
 when
-    Item Home_Temperature changed
+    Item IrrigationCurrentValve received command
 then
-    if (Home_temperature.state > 30) {
-        sendCommand(Window, OPEN)
+	try {
+		
+		val currValve = GroupIrrigationValves.members.findFirst[valve | valve.name == receivedCommand.toString]
+		val currValveNum = Integer::parseInt(currValve.name.split("Zone").get(1))
+		val currValveMins = GroupIrrigationTimes.members.findFirst[t | t.name == currValve.name+"Time" ].state as Number
+		logDebug(logName, "Current valve {}, duration {}", currValve.name, currValveMins)
+
+		
+		val nextValveNum = currValveNum + 1
+		val nextValveName = "IrrigationValveZone" + nextValveNum
+		val nextValve = GroupIrrigationValves.members.findFirst[valve | valve.name == nextValveName]
+		
+		
+		if (nextValve === null)
+			logDebug(logName, "This is the last valve in the sequence")
+		else
+			logDebug(logName, "Next valve {}", nextValve.name)
+		
+		
+		val valveOpenTime = currValveMins * coefficientFactor
+		logInfo(logName, "Opening {} for {} mins", currValve.name, valveOpenTime)
+		currValve.sendCommand(ON)
+
+		IrrigationSectionRemainingTime.postUpdate(valveOpenTime.intValue)
+		
+		
+		irrigationTimer = createTimer(now.plusMinutes(valveOpenTime.intValue), [ |
+			if (nextValve !== null) {
+				
+				IrrigationCurrentValve.sendCommand(nextValve.name)
+			}
+			else {
+				logInfo(logName, "Irrigation is complete")
+			}
+
+			
+			Thread::sleep(500)
+
+			
+			logInfo(logName, "Closing " + currValve.name)
+			currValve.sendCommand(OFF)
+
+			irrigationTimer = null
+		])
+	}
+	catch (Exception e) {
+        logError(logName, "Error controlling cascading valves: " + e)
     }
 end
 
-rule "Initialize Location"
+rule "Irrigation - protection timer off, close all valves"
 when
-    System started
+	Item IrrigationTimerMax changed to OFF
 then
-    DemoLocation.postUpdate(new PointType("52.5200066,13.4049540"))
+	
+	logWarn(logName, "Irrigation protection timer expired - close all valves")
+
+	
+	GroupIrrigationValves.members.forEach [valve | 
+		logDebug(logName, "Closing valve: " + valve.name)
+		valve.sendCommand(OFF)
+	]
 end

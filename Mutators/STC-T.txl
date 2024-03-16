@@ -1,9 +1,9 @@
 % TXL OpenHAB Rules Grammar
-include "openhab.grm"
-include "extractActionData.txl"
-include "modifyTrigger.txl"
-include "extractConditionData.txl"
-include "modifyConditions.txl"
+include "Dependencies/openhab.grm"
+include "Mutator-Functions/extractActionData.txl"
+include "Mutator-Functions/modifyTrigger.txl"
+include "Mutator-Functions/extractConditionData.txl"
+include "Mutator-Functions/modifyConditions.txl"
 
 
 function main
@@ -23,13 +23,13 @@ function main
     replace [program] 
         P [program]
     construct NewP [program]
-        P [createWeakTriggerCascade]
+        P [createStrongTriggerCascade]
     by
         NewP
 end function
 
 
-function createWeakTriggerCascade
+function createStrongTriggerCascade
     replace [program]
         Package [opt package_header]
         Import [repeat import_declaration]
@@ -38,7 +38,7 @@ function createWeakTriggerCascade
 
     construct ModifiedRules [repeat OpenHAB_rule]
         Rules   [modifyTriggerWithActionData]
-                [identicalConditions]
+                [removeConditions]
 
     by
         Package
@@ -104,7 +104,7 @@ function modifyTriggerWithActionData
         RestB
 end function
 
-function identicalConditions
+function removeConditions
     replace [repeat OpenHAB_rule]
         Rules [repeat OpenHAB_rule]
     
@@ -131,10 +131,10 @@ function identicalConditions
             ScriptB [script_block]
         'end
 
-    construct _ [script_block]
-        ScriptA [extractConditionData]
+    construct ModifiedScriptA [script_block]
+        ScriptA [removeConditions2]
     construct ModifiedScriptB [script_block]
-        ScriptB [identicalConditions2]
+        ScriptB [removeConditions2]
 
     by
         'rule NameA
@@ -142,7 +142,7 @@ function identicalConditions
             TriggerA
             MoreTCA
         'then 
-            ScriptA
+            ModifiedScriptA
         'end
 
         'rule NameB

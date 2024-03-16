@@ -1,14 +1,14 @@
 % TXL OpenHAB Rules Grammar
-include "openhab.grm"
-include "extractActionData.txl"
-include "modifyTrigger.txl"
-include "extractConditionData.txl"
-include "modifyConditions.txl"
+include "Dependencies/openhab.grm"
+include "Mutator-Functions/extractTriggerData.txl"
+include "Mutator-Functions/modifyAction.txl"
+include "Mutator-Functions/extractConditionData.txl"
+include "Mutator-Functions/modifyConditions.txl"
 
 
 function main
 
-    %%% Defining global variables for extractActionData
+    %%% Defining global variables for extractTriggerData
     %%% Construct and export with "nothing" id
     construct ReplacementItem [id]
         nothing
@@ -16,9 +16,6 @@ function main
     construct ReplacementValue [id]
       nothing
     export ReplacementValue
-    construct ReplacementAction [id]
-      nothing
-    export ReplacementAction
 
     replace [program] 
         P [program]
@@ -37,7 +34,7 @@ function createStrongTriggerCascade
         Rules [repeat OpenHAB_rule]
 
     construct ModifiedRules [repeat OpenHAB_rule]
-        Rules   [modifyTriggerWithActionData]
+        Rules   [modifyActionWithTriggerData]
                 [removeConditions]
 
     by
@@ -48,7 +45,7 @@ function createStrongTriggerCascade
 end function
 
 
-function modifyTriggerWithActionData
+function modifyActionWithTriggerData
     replace [repeat OpenHAB_rule]
         Rules [repeat OpenHAB_rule]
     
@@ -76,13 +73,13 @@ function modifyTriggerWithActionData
         'end
         
 
-    %%% Extract data from action
-    construct _ [script_block]
-        ScriptA [extractActionData]
+    %%% Extract data from trigger
+    construct _ [trigger_condition]
+        TriggerB [extractTriggerData]
 
-    %%% Modify trigger with data from action
-    construct ModifiedTrigger [trigger_condition]
-        TriggerB [modifyTrigger]
+    %%% Modify action with data from trigger
+    construct ModifiedScript [script_block]
+        ScriptA [modifyAction]
     
     
     by
@@ -91,12 +88,12 @@ function modifyTriggerWithActionData
             TriggerA
             MoreTCA
         'then 
-            ScriptA
+            ModifiedScript
         'end
 
         'rule NameB
         'when
-            ModifiedTrigger
+            TriggerB
             MoreTCB
         'then 
             ScriptB

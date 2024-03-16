@@ -108,7 +108,7 @@ def determine_second_rule_eligibility(rules_list):
 ######
 # Main
 
-rules_file = 'IoTB/demo.rules'
+rules_file = 'IoTB/irrigation.rules'
 rules = get_rules(rules_file)
 
 rules_list = separate_rules(rules)

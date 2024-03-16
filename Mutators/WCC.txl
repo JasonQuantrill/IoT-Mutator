@@ -1,8 +1,8 @@
-include "openhab.grm"
-include "extractActionData.txl"
-include "extractTriggerData.txl"
-include "modifyConditions.txl"
-include "modifyTrigger.txl"
+include "Dependencies/openhab.grm"
+include "Mutator-Functions/extractActionData.txl"
+include "Mutator-Functions/extractTriggerData.txl"
+include "Mutator-Functions/modifyConditions.txl"
+include "Mutator-Functions/modifyTrigger.txl"
 
 
 function main
