@@ -188,8 +188,12 @@ end function
 function onToOff
     replace [id]
         Value [id]
+    export Swapped [boolean_literal]
+        'false
     where
         Value [= "ON"]
+    export Swapped [boolean_literal]
+        'true
     by
         OFF
 end function
@@ -199,6 +203,9 @@ function offToOn
         Value [id]
     where
         Value [= "OFF"]
+    import Swapped [boolean_literal]
+    deconstruct Swapped
+        'false
     by
         ON
 end function
@@ -206,8 +213,12 @@ end function
 function openToClosed
     replace [id]
         Value [id]
+    export Swapped [boolean_literal]
+        'false
     where
         Value [= "OPEN"]
+    export Swapped [boolean_literal]
+        'true
     by
         CLOSED
 end function
@@ -217,6 +228,9 @@ function closedToOpen
         Value [id]
     where
         Value [= "CLOSED"]
+    import Swapped [boolean_literal]
+    deconstruct Swapped
+        'false
     by
         OPEN
 end function

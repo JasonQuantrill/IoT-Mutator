@@ -1,0 +1,4 @@
+irrigation.Rules
+Rule A = 4
+Rule B = 3
+SAC doesn't remove rule B's if statement

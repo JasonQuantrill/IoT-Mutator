@@ -48,13 +48,13 @@ def mutate_rules(rules_list, rule_A, rule_B, mutation_mode):
     with open('mutation.rules', 'w') as file:
         file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
     
-    mutated_rules = str(subprocess.run(['txl', 'mutation.rules', mutation_mode], stdout=subprocess.PIPE))
+    mutated_rules = str(subprocess.run(['txl', 'mutation.rules', f'Mutators/{mutation_mode}'], stdout=subprocess.PIPE))
     mutated_rules = separate_rules(mutated_rules.replace('\\n', '\n').replace('\\r', '\r'))
     return mutated_rules
 
-
-def determine_first_rule_eligibility(rules_list):
-    eligible_rules_indices = []
+def determine_rule_eligibility(rules_list):
+    eligible_rules_A = []
+    eligible_rules_B = []
 
     # Create list of different formats of action commands
     commands = ['sendCommand', 'postUpdate']
@@ -65,61 +65,72 @@ def determine_first_rule_eligibility(rules_list):
     value_patterns = '|'.join(values)
 
     # Create exclusion pattern
-    foreach_pattern = r'\?.members.forEach\('
-    
-    pattern = command_patterns + r'\(([^)]+),' + value_patterns + r'\)'
-    print(pattern)
+    foreach_pattern = r'.members'
+
+    patterns_A = []
+    patterns_A.append(command_patterns + r'\(([^)]+),' + value_patterns + r'\)')
+    patterns_A.append(r'\(([^)]+).' + command_patterns + r'\(' + value_patterns + r'\)')
+
+    patterns_B = []
+    patterns_B.append(command_patterns + r'\(([^)]+), ([^)]+)\)')
+    patterns_B.append(r'\(([^)]+).' + command_patterns + r'\(([^)]+)\)')
 
     for i in range(len(rules_list)):
         
         # Exclude rules with this kind of pattern because txl won't parse it
         exclusion_match = re.findall(foreach_pattern, rules_list[i])
         if exclusion_match:
-            print(f'Rule {i+1}: Exclusion')
+            print(f'Rule {i}: Exclusion')
             continue
 
-        # Find matches and add them to eligible list
-        matches = re.findall(pattern, rules_list[i])
-        if matches:
-            print(f'Rule {i+1}: ', matches)
-            eligible_rules_indices.append(i)
+        # Find matches for pattern A and add them to eligible list
+        for pattern in patterns_A:
+            #print(pattern)
+            matches = re.findall(pattern, rules_list[i])
+            if matches:
+                print(f'Rule {i}: ', matches)
+                eligible_rules_A.append(i)
+                break
 
-    print('Rule_A indices: ', eligible_rules_indices)
-    return eligible_rules_indices
+        # Find matches for pattern B and add them to eligible list
+        for pattern in patterns_B:
+            #print(pattern)
+            matches = re.findall(pattern, rules_list[i])
+            if matches:
+                print(f'Rule {i}: ', matches)
+                eligible_rules_B.append(i)
+                break
+
+    print('\nRule_A eligible indices: ', eligible_rules_A)
+    print('Rule_B eligible indices: ', eligible_rules_B)
+    
+    return eligible_rules_A, eligible_rules_B
+
+def choose_rules(rules_list):
+    # Determine eligible rules that function with txl mutator
+    eligible_rule_A, eligible_rule_B = determine_rule_eligibility(rules_list)
+
+    # From eligible rules, select the indices of 2 rules to mutate
+    rule_A = random.choice(eligible_rule_A)
+    rule_B = random.choice(eligible_rule_B)
+
+    print(f'\nSelected rules {rule_A} and {rule_B}\n')
+
+    return rule_A, rule_B
 
 
-def determine_second_rule_eligibility(rules_list):
-    eligible_rules_indices = []
-
-    # Create exclusion pattern
-    foreach_pattern = r'\?.members.forEach\('
-
-    for i in range(len(rules_list)):
-        # Exclude rules with this kind of pattern because txl won't parse it
-        exclusion_match = re.findall(foreach_pattern, rules_list[i])
-        if not exclusion_match:
-            eligible_rules_indices.append(i)
-            
-    # in a rule with multiple actions, just select the first one?
-    # how to make sure that if there are conditions, that the condition that applies to the mutated action is mutated
-    print('Rule_B indices: ', eligible_rules_indices)
-    return eligible_rules_indices
 
 ######
 # Main
 
-rules_file = 'IoTB/irrigation.rules'
+rules_file = 'rulesets/irrigation.rules'
 rules = get_rules(rules_file)
 
+# Parse rules file
 rules_list = separate_rules(rules)
 
-# Determine eligible rules that function with txl mutator
-eligible_rule_A = determine_first_rule_eligibility(rules_list)
-eligible_rule_B = determine_second_rule_eligibility(rules_list)
-
-# From eligible rules, select which 2 rules to mutate
-rule_A = random.choice(eligible_rule_A)
-rule_B = random.choice(eligible_rule_B)
+# Select 2 rules to mutate
+rule_A, rule_B = choose_rules(rules_list)
 
 # Specify which type of mutation is being performed
 mutation_mode = 'SAC.txl'
