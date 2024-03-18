@@ -45,10 +45,10 @@ def separate_rules(rules):
 
 
 def mutate_rules(rules_list, rule_A, rule_B, mutation_mode):
-    with open('mutation.rules', 'w') as file:
+    with open('original.rules', 'w') as file:
         file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
     
-    mutated_rules = str(subprocess.run(['txl', 'mutation.rules', f'Mutators/{mutation_mode}'], stdout=subprocess.PIPE))
+    mutated_rules = str(subprocess.run(['txl', 'original.rules', f'Mutators/{mutation_mode}'], stdout=subprocess.PIPE))
     mutated_rules = separate_rules(mutated_rules.replace('\\n', '\n').replace('\\r', '\r'))
     return mutated_rules
 
