@@ -1,5 +1,6 @@
 // Rules 1 & 4
 // Remove try/catch
+// try/catch RESOLVED for SAC
 
 rule "Irrigation - calculate whether to start watering"
 when
