@@ -50,6 +50,10 @@ def mutate_rules(rules_list, rule_A, rule_B, mutation_mode):
     
     mutated_rules = str(subprocess.run(['txl', 'original.rules', f'Mutators/{mutation_mode}'], stdout=subprocess.PIPE))
     mutated_rules = separate_rules(mutated_rules.replace('\\n', '\n').replace('\\r', '\r'))
+
+    with open('mutated.rules', 'w') as file:
+        file.write(mutated_rules[0] + '\n\n' + mutated_rules[1])
+    
     return mutated_rules
 
 def determine_rule_eligibility(rules_list):
@@ -64,9 +68,6 @@ def determine_rule_eligibility(rules_list):
     values = ['ON', 'OFF', 'OPEN', 'CLOSED']
     value_patterns = '|'.join(values)
 
-    # Create exclusion pattern
-    foreach_pattern = r'.members'
-
     patterns_A = []
     patterns_A.append(command_patterns + r'\(([^)]+),' + value_patterns + r'\)')
     patterns_A.append(r'\(([^)]+).' + command_patterns + r'\(' + value_patterns + r'\)')
@@ -75,13 +76,35 @@ def determine_rule_eligibility(rules_list):
     patterns_B.append(command_patterns + r'\(([^)]+), ([^)]+)\)')
     patterns_B.append(r'\(([^)]+).' + command_patterns + r'\(([^)]+)\)')
 
+    # Group of patterns that txl will not parse, and so must be excluded
+    exclusion_patterns = []
+    # GroupIrrigationTimes.members.findFirst[t | ... ]
+    exclusion_patterns.append(r'.members')
+
+    debug_patterns = []
+    debug_patterns.append(r'IrrigationSectionRemainingTime.postUpdate(0)')
+
     for i in range(len(rules_list)):
+
+        # Debug patterns
+        for debug_pattern in debug_patterns:
+
+            print(rules_list[i])
+            
+            debug_match = re.findall(debug_pattern, rules_list[i])
+            print(debug_match)
+            if debug_match:
+                print(f'Rule {i}: Debug')
+                print(matches)
+                continue
         
         # Exclude rules with this kind of pattern because txl won't parse it
-        exclusion_match = re.findall(foreach_pattern, rules_list[i])
-        if exclusion_match:
-            print(f'Rule {i}: Exclusion')
-            continue
+        for exclusion_pattern in exclusion_patterns:
+            exclusion_match = re.findall(exclusion_pattern, rules_list[i])
+            if exclusion_match:
+                print(f'Rule {i}: Exclusion')
+                print(matches)
+                continue
 
         # Find matches for pattern A and add them to eligible list
         for pattern in patterns_A:
@@ -112,8 +135,10 @@ def choose_rules(rules_list):
 
     # From eligible rules, select the indices of 2 rules to mutate
     rule_A = random.choice(eligible_rule_A)
-    rule_B = random.choice(eligible_rule_B)
 
+    eligible_rule_B.remove(rule_A)
+    rule_B = random.choice(eligible_rule_B)
+    
     print(f'\nSelected rules {rule_A} and {rule_B}\n')
 
     return rule_A, rule_B
@@ -123,7 +148,7 @@ def choose_rules(rules_list):
 ######
 # Main
 
-rules_file = 'rulesets/irrigation.rules'
+rules_file = 'rulesets/irrigation2.rules'
 rules = get_rules(rules_file)
 
 # Parse rules file
@@ -135,7 +160,8 @@ rule_A, rule_B = choose_rules(rules_list)
 # Specify which type of mutation is being performed
 mutation_mode = 'SAC.txl'
 
-mutated_rules = mutate_rules(rules_list, rule_A, rule_B, mutation_mode)
+# mutated_rules = mutate_rules(rules_list, rule_A, rule_B, mutation_mode)
+mutated_rules = mutate_rules(rules_list, 0, 1, mutation_mode)
 
 rules_list[rule_A] = mutated_rules[0]
 rules_list[rule_B] = mutated_rules[1]

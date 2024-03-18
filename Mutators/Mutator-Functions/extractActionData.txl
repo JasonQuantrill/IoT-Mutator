@@ -4,6 +4,7 @@ function extractActionData
 
     construct _ [repeat openHAB_declaration_or_statement]
         Statements  [exportActionFunctionItemValue] [exportActionMethodItemValue]
+                    [exportActionMethodItemDotValue]
 
     by
         Statements
@@ -26,6 +27,19 @@ function exportActionMethodItemValue
     replace * [statement]
         ReplacementItem [id]
         '. ReplacementAction [id] '( ReplacementValue [id] ')
+
+    export ReplacementAction
+    export ReplacementItem
+    export ReplacementValue
+
+    by
+        ReplacementItem '. ReplacementAction '( ReplacementValue ')
+end function
+
+function exportActionMethodItemDotValue
+    replace * [statement]
+        ReplacementItem [id]
+        '. ReplacementAction [id] '( ReplacementActionItem [id] '. ReplacementValue [id] ')
 
     export ReplacementAction
     export ReplacementItem
