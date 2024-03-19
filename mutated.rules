@@ -3,14 +3,13 @@ when
     Item GroupIrrigationValves changed to OFF
 then
     logInfo (logName, "All irrigation valves closed")
-    IrrigationCurrentValve.postUpdate (OFF)
+    nothing.postUpdate (OFF)
     IrrigationSectionRemainingTime.postUpdate (0)
 end
 
 rule "Irrigation - update timer"
 when
-    Item GroupIrrigationValves changed to OFF
+    Time cron "0 * * ? * *"
 then
-    if (IrrigationSectionRemainingTime.state as Number > 0)
-    IrrigationCurrentValve.postUpdate (ON)
+    IrrigationSectionRemainingTime.postUpdate ((IrrigationSectionRemainingTime.state as Number) - 1)
 end

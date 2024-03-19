@@ -1,3 +1,6 @@
+// Rules 4 & 3
+// SAC: Added brackets to single 'if' lines to successfully remove conditions
+
 rule "Irrigation - all valves closed"
 when
 	Item GroupIrrigationValves changed to OFF

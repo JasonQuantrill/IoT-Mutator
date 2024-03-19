@@ -12,7 +12,7 @@ end
 
 rule "Irrigation - update timer"
 when
-  Time cron "0 * * ? * *" 
+	Item IrrigationCurrentValve received update OFF
 then
 	if (IrrigationSectionRemainingTime.state as Number > 0) {
 		IrrigationSectionRemainingTime.postUpdate((IrrigationSectionRemainingTime.state as Number) - 1)

@@ -14,19 +14,33 @@ value_patterns = '|'.join(values)
 
 s = []
 
-s.append('IrrigationSectionRemainingTime.postUpdate(0)')
-s.append('IrrigationCurrentValve.sendCommand(IrrigationValveZone1.name)')
-s.append('sendCommand(Item, IrrigationValveZone1.name)')
-s.append('IrrigationCurrentValve.sendCommand(OFF)')
-s.append('sendCommand(Item, OPEN)')
-s.append('sendCommand(Item,ON)')
+s.append('''
+rule "Irrigation - all valves closed"
+when
+    Item GroupIrrigationValves changed to OFF
+then
+	
+	logInfo(logName, "All irrigation valves closed")
+	IrrigationCurrentValve.postUpdate(OFF)
+
+	
+	IrrigationSectionRemainingTime.postUpdate(0)
+end
+
+rule "Irrigation - update timer"
+when
+    Time cron "0 * * ? * *" 
+then
+	if (IrrigationSectionRemainingTime.state as Number > 0) {
+		IrrigationSectionRemainingTime.postUpdate((IrrigationSectionRemainingTime.state as Number) - 1)
+    }
+end
+         ''')
+
 
 p = []
-#p.append(r'(.+)\.' + '(' + command_patterns + ')' + r'\((' + value_patterns + r')\)')
-p.append('(' + command_patterns + ')' + r'\(' + r'(.+), *' + r'(' + value_patterns + r')\)')
+p.append(r'when\n(\t|( *))(.+)\nthen\n')
 
-
-#p.append(r'\(([^)]+).' + command_patterns + r'\(' + value_patterns + r'\)')
 
 for ss in s:
     for pp in p:
@@ -58,3 +72,7 @@ pass
 #s.append('sendCommand(Item,OPEN)')
 #p.append('(' + command_patterns + ')' + r'\(' + r'(.+), *' + r'(' + value_patterns + r')\)')
 
+#s.append('''   when
+#                   Item GroupIrrigationValves changed to OFF
+#               then)
+#p.append(r'when\n(\t|( *))(.+)\nthen\n')
