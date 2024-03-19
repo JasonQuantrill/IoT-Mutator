@@ -4,20 +4,58 @@ import os
 # Clear terminal
 os.system('cls' if os.name == 'nt' else 'clear')
 
+p = []
+s= []
 # Create list of different formats of action commands
-commands = ['sendCommand', 'postUpdate']
-command_patterns = '|'.join(commands)
+# commands = '(sendCommand|postUpdate)'
 
-# Create list of different formats of action values
-values = ['ON', 'OFF', 'OPEN', 'CLOSED']
-value_patterns = '|'.join(values)
+# # Create list of different formats of action values
+# values = ['ON', 'OFF', 'OPEN', 'CLOSED']
+# value_patterns = '|'.join(values)
 
-s = []
+trigger = {'type': '',
+        'item': '',
+        'command': '',
+        'value': ''
+        }
+    
+types = '(Item|Time|System)'
+commands = '(received update |received command |changed|changed to | started| cron )'
+values = '(ON|OFF|OPEN|CLOSED)'
+
+trigger_pattern_itemvalue = (r'when\n(\t| +)'
+                   + types + ' (.+) '
+                   + commands + values
+                   + r'\nthen\n'
+)
+
+trigger_pattern_item = (r'when\n(\t| +)'
+                   + types + ' (.+) '
+                   + commands
+                   + r'\nthen\n'
+)
+
+trigger_pattern_system = (r'when\n(\t| +)'
+                   + types + commands
+                   + r'\nthen\n'
+)
+
+trigger_pattern_time = (r'when\n(\t| +)'
+                   + types + commands + r'\"(.+)\"'
+                   + r'\nthen\n'
+)
+
+
+
+p.append(trigger_pattern_itemvalue)
+p.append(trigger_pattern_item)
+p.append(trigger_pattern_system)
+p.append(trigger_pattern_time)
 
 s.append('''
 rule "Irrigation - all valves closed"
 when
-    Item GroupIrrigationValves changed to OFF
+    Time cron "0 * * ? * *"
 then
 	
 	logInfo(logName, "All irrigation valves closed")
@@ -26,25 +64,12 @@ then
 	
 	IrrigationSectionRemainingTime.postUpdate(0)
 end
-
-rule "Irrigation - update timer"
-when
-    Time cron "0 * * ? * *" 
-then
-	if (IrrigationSectionRemainingTime.state as Number > 0) {
-		IrrigationSectionRemainingTime.postUpdate((IrrigationSectionRemainingTime.state as Number) - 1)
-    }
-end
-         ''')
-
-
-p = []
-p.append(r'when\n(\t|( *))(.+)\nthen\n')
+''')
 
 
 for ss in s:
+    print(f'String: {ss}')
     for pp in p:
-        print(f'String: {ss}')
         print(f'Pattern: {pp}')
 
         matches = re.findall(pp, ss)
@@ -75,4 +100,20 @@ pass
 #s.append('''   when
 #                   Item GroupIrrigationValves changed to OFF
 #               then)
+# Captures entire trigger part
 #p.append(r'when\n(\t|( *))(.+)\nthen\n')
+# Captures each element of trigger
+# trigger_pattern = (r'when\n(\t| +)'
+#                    + types + ' (.+) '
+#                    + commands + values
+#                    + r'\nthen\n'
+# )
+
+
+#s.append('''   when
+#                   System started
+#               then)
+# trigger_pattern_system = (r'when\n(\t| +)'
+#                    + types + commands
+#                    + r'\nthen\n'
+# )

@@ -1,6 +1,7 @@
 import re
 
-# STC_T changes the trigger of the second rule such that the action of the first rule triggers it
+# STC_T: mutate the TRIGGER of the SECOND rule
+# such that the ACTION of the FIRST rule triggers it
 def mutate(rule_A, rule_B):
     action_A = get_action(rule_A)
     print(action_A)
@@ -37,7 +38,6 @@ def get_action(rule_A):
             break
 
     return action
-
 
 def mutate_trigger(action_A, rule_B):
     trigger_pattern = r'when\n(\t|( *))(.+)\nthen\n'
