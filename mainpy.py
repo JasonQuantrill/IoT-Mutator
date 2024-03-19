@@ -2,13 +2,14 @@ import os
 import re
 import random
 import subprocess
-import STC_T
+from Mutators.pymut import STC_A, STC_T
+from Mutators.pymut.utilities import utils
 
 # Clear terminal
 os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def get_rules(filename):
+def get_rules(rules_file):
     # Open the .rules file in read mode
     with open(rules_file, 'r') as file:
         # Read the contents of the file
@@ -44,26 +45,13 @@ def separate_rules(rules):
                 rules_list.append(rule)
     return rules_list
 
-
-def mutate_rules_txl(rules_list, rule_A, rule_B, mutation_mode):
-    with open('original.rules', 'w') as file:
-        file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
-    
-    mutated_rules = str(subprocess.run(['txl', 'original.rules', f'Mutators/{mutation_mode}'], stdout=subprocess.PIPE))
-    mutated_rules = separate_rules(mutated_rules.replace('\\n', '\n').replace('\\r', '\r'))
-
-    with open('mutated.rules', 'w') as file:
-        file.write(mutated_rules[0] + '\n\n' + mutated_rules[1])
-    
-    return mutated_rules
-
 def mutate_rules_py(rules_list, rule_A, rule_B, mutation_mode):
-    with open('originalpy.rules', 'w') as file:
+    with open('mutators/pymut/output/originalpy.rules', 'w') as file:
         file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
     
     mutated_rules = STC_T.mutate(rules_list[rule_A], rules_list[rule_B])
     
-    with open('mutatedpy.rules', 'w') as file:
+    with open('mutators/pymut/output/mutatedpy.rules', 'w') as file:
         file.write(mutated_rules[0] + '\n\n' + mutated_rules[1])
     
     return mutated_rules
@@ -152,28 +140,30 @@ def choose_rules(rules_list):
     return rule_A, rule_B
 
 
+def main():
+    rules_file = 'rulesets/irrigation4.rules'
+    rules = get_rules(rules_file)
 
-######
-# Main
+    # Parse rules file
+    rules_list = separate_rules(rules)
 
-rules_file = 'rulesets/irrigation4.rules'
-rules = get_rules(rules_file)
+    # Select 2 rules to mutate
+    rule_A, rule_B = choose_rules(rules_list)
+    rule_A, rule_B = 0, 1 # Testing
 
-# Parse rules file
-rules_list = separate_rules(rules)
+    # Specify which type of mutation is being performed
+    mutation_mode = 'STC-A'
 
-# Select 2 rules to mutate
-rule_A, rule_B = choose_rules(rules_list)
-rule_A, rule_B = 0, 1 # Testing
+    mutated_rules = mutate_rules_py(rules_list, rule_A, rule_B, mutation_mode)
 
-# Specify which type of mutation is being performed
-mutation_mode = 'STC-A.txl'
-
-mutated_rules = mutate_rules_py(rules_list, rule_A, rule_B, mutation_mode)
-
-rules_list[rule_A] = mutated_rules[0]
-rules_list[rule_B] = mutated_rules[1]
+    rules_list[rule_A] = mutated_rules[0]
+    rules_list[rule_B] = mutated_rules[1]
 
 
-print(mutated_rules[0], '\n')
-print(mutated_rules[1])
+    print(mutated_rules[0], '\n')
+    print(mutated_rules[1])
+
+if __name__ == "__main__":
+    main()
+
+

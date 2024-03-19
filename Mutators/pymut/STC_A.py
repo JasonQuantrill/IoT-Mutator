@@ -77,4 +77,19 @@ def get_trigger(rule_A):
     return trigger
 
 def mutate_action(trigger_A, rule_B):
-    pass
+    action_pattern = r'when\n(\t|( *))(.+)\nthen\n'
+    
+    if trigger_A['command'] == 'postUpdate':
+        replace_pattern = (r'when\n\tItem '
+                        + action_A['item'] + ' received update '
+                        + action_A['value'] + '\nthen\n'
+        )
+    elif trigger_A['command'] == 'sendCommand':
+        replace_pattern = (r'when\n\tItem '
+                        + action_A['item'] + ' received command '
+                        + action_A['value'] + '\nthen\n'
+        )
+    print(rule_B)
+    mutated_B = re.sub(action_pattern, replace_pattern, rule_B, count=0, flags=0)
+    print(mutated_B)
+    return mutated_B
