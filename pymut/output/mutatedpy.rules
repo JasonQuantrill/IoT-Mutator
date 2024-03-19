@@ -15,6 +15,6 @@ when
   Time cron "0 * * ? * *"
 then
 	if (IrrigationSectionRemainingTime.state as Number > 0) {
-GroupIrrigationValves.sendCommand(OFF)
+IrrigationCurrentValve.postUpdate(ON)
     }
 end

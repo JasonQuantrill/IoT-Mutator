@@ -2,7 +2,7 @@ import os
 import re
 import random
 import subprocess
-from pymut.mutators import STC_A, STC_T
+from pymut.mutators import STC_A, STC_T, SAC
 from pymut.utilities import utils
 
 # Clear terminal
@@ -12,7 +12,7 @@ def mutate_rules_py(rules_list, rule_A, rule_B, mutation_mode):
     with open('pymut/output/originalpy.rules', 'w') as file:
         file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
     
-    mutated_rules = STC_A.mutate(rules_list[rule_A], rules_list[rule_B])
+    mutated_rules = SAC.mutate(rules_list[rule_A], rules_list[rule_B])
     
     with open('pymut/output/mutatedpy.rules', 'w') as file:
         file.write(mutated_rules[0] + '\n\n' + mutated_rules[1])
