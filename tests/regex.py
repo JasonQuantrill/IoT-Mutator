@@ -13,6 +13,8 @@ s= []
 # values = ['ON', 'OFF', 'OPEN', 'CLOSED']
 # value_patterns = '|'.join(values)
 
+
+
 trigger = {'type': '',
         'item': '',
         'command': '',
@@ -76,7 +78,11 @@ for ss in s:
 
         print(f'Matches: {matches}\n')
 
-pass
+t = ''
+if t:
+    print('empty string')
+else:
+    print('nothing')
 
 # working
 

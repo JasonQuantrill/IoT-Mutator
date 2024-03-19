@@ -12,7 +12,7 @@ def mutate_rules_py(rules_list, rule_A, rule_B, mutation_mode):
     with open('pymut/output/originalpy.rules', 'w') as file:
         file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
     
-    mutated_rules = STC_T.mutate(rules_list[rule_A], rules_list[rule_B])
+    mutated_rules = STC_A.mutate(rules_list[rule_A], rules_list[rule_B])
     
     with open('pymut/output/mutatedpy.rules', 'w') as file:
         file.write(mutated_rules[0] + '\n\n' + mutated_rules[1])
@@ -31,7 +31,7 @@ def main():
     rule_A, rule_B = 0, 1 # Testing
 
     # Specify which type of mutation is being performed
-    mutation_mode = 'STC-A'
+    mutation_mode = 'STC_A'
 
     mutated_rules = mutate_rules_py(rules_list, rule_A, rule_B, mutation_mode)
 

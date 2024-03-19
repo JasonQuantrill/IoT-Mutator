@@ -1,13 +1,13 @@
 import re
+from pymut.utilities import data_processors as dp
 
 # STC_A: mutate the ACTION of the SECOND rule
 # such that the TRIGGER of the FIRST rule is triggered
 
 def mutate(rule_A, rule_B):
     trigger_A = get_trigger(rule_A)
-    print(trigger_A)
-    rule_B = mutate_action(trigger_A, rule_B)
-    return [rule_A, rule_B]
+    mutated_B = mutate_action(trigger_A, rule_B)
+    return [rule_A, mutated_B]
 
 def get_trigger(rule_A):
     trigger = {'type': '',
@@ -72,24 +72,65 @@ def get_trigger(rule_A):
                 trigger['type'] = matches[0][1].strip()
                 trigger['command'] = matches[0][2].strip()
                 trigger['value'] = matches[0][3]
-            print(trigger)
             break
     return trigger
 
 def mutate_action(trigger_A, rule_B):
-    action_pattern = r'when\n(\t|( *))(.+)\nthen\n'
-    
-    if trigger_A['command'] == 'postUpdate':
-        replace_pattern = (r'when\n\tItem '
-                        + action_A['item'] + ' received update '
-                        + action_A['value'] + '\nthen\n'
-        )
-    elif trigger_A['command'] == 'sendCommand':
-        replace_pattern = (r'when\n\tItem '
-                        + action_A['item'] + ' received command '
-                        + action_A['value'] + '\nthen\n'
-        )
-    print(rule_B)
-    mutated_B = re.sub(action_pattern, replace_pattern, rule_B, count=0, flags=0)
-    print(mutated_B)
+    replacement_patterns = {}
+
+    if (trigger_A['command'] == 'received update'
+          and trigger_A['value']):
+        replacement_patterns['method'] = (trigger_A['item']
+                                            + '.postUpdate('
+                                            + trigger_A['value'] 
+                                            + ')'
+            )
+        replacement_patterns['function'] = ('postUpdate(' 
+                                            + trigger_A['item'] 
+                                            + ', ' 
+                                            + trigger_A['value'] 
+                                            + ')'
+            )
+    elif (trigger_A['command'] == 'received command'
+          or (trigger_A['command'] == 'changed to')
+          and trigger_A['value']):
+        replacement_patterns['method'] = (trigger_A['item']
+                                            + '.sendCommand('
+                                            + trigger_A['value'] 
+                                            + ')'
+            )
+        replacement_patterns['function'] = ('sendCommand(' 
+                                            + trigger_A['item'] 
+                                            + ', ' 
+                                            + trigger_A['value'] 
+                                            + ')'
+            )
+    elif (trigger_A['command'] == 'received update'
+          and not trigger_A['value']):
+        replacement_patterns['method'] = (trigger_A['item']
+                                            + '.postUpdate(ON)'
+            )
+        replacement_patterns['function'] = ('postUpdate(' 
+                                            + trigger_A['item'] 
+                                            + ', ON)'
+            )
+    elif (trigger_A['command'] == ('received command' or 'changed to')
+          and not trigger_A['value']):
+        replacement_patterns['method'] = (trigger_A['item']
+                                            + '.sendCommand(ON)'
+            )
+        replacement_patterns['function'] = ('sendCommand(' 
+                                            + trigger_A['item'] 
+                                            + ', ON)'
+            )
+
+    action_patterns = dp.get_general_action_patterns()
+
+    for pattern in action_patterns:
+        print(action_patterns[pattern])
+        mutated_B = re.sub(action_patterns[pattern], replacement_patterns[pattern], rule_B, count=0, flags=0)
+
+        if rule_B != mutated_B:
+            break
+
     return mutated_B
