@@ -15,58 +15,47 @@ s= []
 
 
 
-trigger = {'type': '',
-        'item': '',
-        'command': '',
-        'value': ''
-        }
+# trigger = {'type': '',
+#         'item': '',
+#         'command': '',
+#         'value': ''
+#         }
     
-types = '(Item|Time|System)'
-commands = '(received update |received command |changed|changed to | started| cron )'
-values = '(ON|OFF|OPEN|CLOSED)'
+# types = '(Item|Time|System)'
+# commands = '(received update |received command |changed|changed to | started| cron )'
+# values = '(ON|OFF|OPEN|CLOSED)'
 
-trigger_pattern_itemvalue = (r'when\n(\t| +)'
-                   + types + ' (.+) '
-                   + commands + values
-                   + r'\nthen\n'
-)
+# trigger_pattern_itemvalue = (r'when\n(\t| +)'
+#                    + types + ' (.+) '
+#                    + commands + values
+#                    + r'\nthen\n'
+# )
 
-trigger_pattern_item = (r'when\n(\t| +)'
-                   + types + ' (.+) '
-                   + commands
-                   + r'\nthen\n'
-)
+# trigger_pattern_item = (r'when\n(\t| +)'
+#                    + types + ' (.+) '
+#                    + commands
+#                    + r'\nthen\n'
+# )
 
-trigger_pattern_system = (r'when\n(\t| +)'
-                   + types + commands
-                   + r'\nthen\n'
-)
+# trigger_pattern_system = (r'when\n(\t| +)'
+#                    + types + commands
+#                    + r'\nthen\n'
+# )
 
-trigger_pattern_time = (r'when\n(\t| +)'
-                   + types + commands + r'\"(.+)\"'
-                   + r'\nthen\n'
-)
+# trigger_pattern_time = (r'when\n(\t| +)'
+#                    + types + commands + r'\"(.+)\"'
+#                    + r'\nthen\n'
+# )
 
 
 
-p.append(trigger_pattern_itemvalue)
-p.append(trigger_pattern_item)
-p.append(trigger_pattern_system)
-p.append(trigger_pattern_time)
+# p.append(trigger_pattern_itemvalue)
+# p.append(trigger_pattern_item)
+# p.append(trigger_pattern_system)
+# p.append(trigger_pattern_time)
+p.append()
 
-s.append('''
-rule "Irrigation - all valves closed"
-when
-    Time cron "0 * * ? * *"
-then
-	
-	logInfo(logName, "All irrigation valves closed")
-	IrrigationCurrentValve.postUpdate(OFF)
-
-	
-	IrrigationSectionRemainingTime.postUpdate(0)
-end
-''')
+s.append()
 
 
 for ss in s:
@@ -77,12 +66,6 @@ for ss in s:
         matches = re.findall(pp, ss)
 
         print(f'Matches: {matches}\n')
-
-t = ''
-if t:
-    print('empty string')
-else:
-    print('nothing')
 
 # working
 

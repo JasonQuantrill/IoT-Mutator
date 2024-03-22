@@ -9,13 +9,13 @@ def get_specific_action_patterns():
 
     action_patterns = {}
     # eg. Item.postUpdate(OFF)
-    action_method = (r'(.+)\.' + commands 
-                      + r'\(' + values + '\)'
+    action_method = (r'((.+)\.' + commands 
+                      + r'\(' + values + '\))'
                       )
     # eg. postUpdate(Item, OFF)   
-    action_function = (commands + r'\(' 
+    action_function = (r'(' + commands + r'\(' 
                       + r'(.+), *' 
-                      + values + r'\)'
+                      + values + r'\))'
                       )
     
     action_patterns['method'] = action_method
@@ -32,12 +32,12 @@ def get_general_action_patterns():
 
     action_patterns = {}
     # eg. Item.postUpdate(OFF)
-    action_method = (r'(.+)\.' + commands 
-                      + r'\((.+)\)'
+    action_method = (r'((.+)\.' + commands 
+                      + r'\((.+)\))'
                       )
     # eg. postUpdate(Item, OFF)   
-    action_function = (commands + r'\(' 
-                      + r'(.+), *(.+)\)'
+    action_function = (r'(' + commands + r'\(' 
+                      + r'(.+), *(.+)\))'
                       )
     
     action_patterns['method'] = action_method
@@ -48,21 +48,23 @@ def get_general_action_patterns():
 def get_action_data(rule_A):
     action = {'item': '',
               'command': '',
-              'value': ''
+              'value': '',
+              'action': ''
               }
     
     patterns_A = get_specific_action_patterns()
 
     # Find matches for pattern A and add them to eligible list
     for pattern in patterns_A:
-        #print(pattern)
+        
         matches = re.findall(patterns_A[pattern], rule_A)
+        print('Matches: ', matches)
         if matches:
-            action['item'] = matches[0][0].strip()
-            action['command'] = matches[0][1]
-            action['value'] = matches[0][2]
+            action['item'] = matches[0][1]
+            action['command'] = matches[0][2]
+            action['value'] = matches[0][3]
+            action['action'] = matches[0][0]
             break
-
     return action
 
 def mutate_actionB_with_actionA(action_A, rule_B):
@@ -70,30 +72,28 @@ def mutate_actionB_with_actionA(action_A, rule_B):
     
 
     for pattern in action_patterns:
-        print(action_patterns[pattern])
         matches = re.findall(action_patterns[pattern], rule_B)
-        print(matches)
         if matches:
             if pattern == 'method':
                 replace_pattern = (action_A['item']
                                             + '.' 
-                                            + matches[0][1]
+                                            + matches[0][2]
                                             + '('
                                             + opposite(action_A['value']) 
                                             + ')'
                 )
                 mutated_B = re.sub(action_patterns[pattern], replace_pattern, rule_B, count=0, flags=0)
-                return mutated_B
+                return mutated_B, replace_pattern
             elif pattern == 'function':
                 replace_pattern = (action_A['item']
                                             + '.' 
-                                            + matches[0][1]
+                                            + matches[0][2]
                                             + '('
                                             + opposite(action_A['value']) 
                                             + ')'
                 )
                 mutated_B = re.sub(action_patterns[pattern], replace_pattern, rule_B, count=0, flags=0)
-                return mutated_B
+                return mutated_B, replace_pattern
         
 def mutate_actionB_with_TriggerA(trigger_A, rule_B):
     replacement_patterns = {}
@@ -230,7 +230,7 @@ def get_trigger_data(rule_A):
     return trigger
 
 def mutate_triggerB_with_actionA(action_A, rule_B):
-    trigger_pattern = r'when\n(\t|( *))(.+)\nthen\n'
+    general_trigger_pattern = r'when\n(\t| +)(.+)\nthen\n'
     if action_A['command'] == 'postUpdate':
         replace_pattern = (r'when\n\tItem '
                         + action_A['item'] + ' received update '
@@ -242,7 +242,7 @@ def mutate_triggerB_with_actionA(action_A, rule_B):
                         + action_A['value'] + '\nthen\n'
         )
     print(rule_B)
-    mutated_B = re.sub(trigger_pattern, replace_pattern, rule_B, count=0, flags=0)
+    mutated_B = re.sub(general_trigger_pattern, replace_pattern, rule_B, count=0, flags=0)
     print(mutated_B)
     return mutated_B
 
@@ -250,16 +250,39 @@ def compatible_triggers(rule_A, rule_B):
     return rule_B
 
 def identical_triggers(rule_A, rule_B):
-    return rule_B
-
+    general_trigger_pattern = r'when\n(\t| +)(.+)\nthen\n'
+    matches = re.findall(general_trigger_pattern, rule_A)
+    print(matches)
+    replace_pattern = 'when\n\t' + matches[0][1] + '\nthen\n'
+    mutated_B = re.sub(general_trigger_pattern, replace_pattern, rule_B)
+    return mutated_B
 
 
 
 def compatible_conditions(rule_A, rule_B):
     return rule_B
 
-def remove_conditions(rule_A, rule_B):
-    return rule_A, rule_B
+def remove_conditions(rule_A, action_A, rule_B, action_B):
+    condition_patterns_A = []
+    condition_patterns_A.append(
+        r'((\t| +)if \((.+)(\n| +)\{\n' +
+        '(\t+| +' + action_A['action'] + '))'
+    )
+
+    print('Action B: ', action_B)
+    condition_patterns_B = []
+    condition_patterns_B.append(
+        r'((\t| +)if \((.+)(\n| +)\{\n' +
+        '(\t+| +' + action_B.strip() + '))'
+    )
+
+    # Remove the condition that surrounds the mutation action in rule A
+    for pattern in condition_patterns_A:
+        mutated_A = re.sub(pattern, action_A['action'], rule_A)
+    # Remove the condition that surrounds the mutation action in rule B
+    for pattern in condition_patterns_B:
+        mutated_A = re.sub(pattern, action_A['action'], rule_A)
+    return mutated_A, rule_B
 
 def mutate_conditionB_with_actionA(action_A, rule_B):
     return rule_B

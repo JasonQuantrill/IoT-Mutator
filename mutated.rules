@@ -1,0 +1,15 @@
+rule "Irrigation - all valves closed"
+when
+    Item GroupIrrigationValves changed to OFF
+then
+    logInfo (logName, "All irrigation valves closed")
+    nothing.postUpdate (OFF)
+    IrrigationSectionRemainingTime.postUpdate (0)
+end
+
+rule "Irrigation - update timer"
+when
+    Time cron "0 * * ? * *"
+then
+    IrrigationSectionRemainingTime.postUpdate ((IrrigationSectionRemainingTime.state as Number) - 1)
+end

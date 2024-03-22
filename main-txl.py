@@ -48,7 +48,7 @@ def mutate_rules_txl(rules_list, rule_A, rule_B, mutation_mode):
     with open('original.rules', 'w') as file:
         file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
     
-    mutated_rules = str(subprocess.run(['txl', 'original.rules', f'Mutators/{mutation_mode}'], stdout=subprocess.PIPE))
+    mutated_rules = str(subprocess.run(['txl', 'original.rules', f'txlmut/{mutation_mode}'], stdout=subprocess.PIPE))
     mutated_rules = separate_rules(mutated_rules.replace('\\n', '\n').replace('\\r', '\r'))
 
     with open('mutated.rules', 'w') as file:
