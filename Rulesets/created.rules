@@ -1,0 +1,73 @@
+
+
+
+
+rule "Turn on sprinkler for a fire"
+when
+    Item Smoke_Detector changed
+then
+    sendCommand(Sprinkler, ON)
+end
+
+
+
+
+
+rule "Turn on tv Thursday at 5pm"
+when
+    Time cron "0 17 * * 4"
+then
+    if (My_Location.location == "home") {
+        postUpdate(TV, ON)
+    }
+end
+
+
+
+rule "open window when room is hot"
+when
+    Item Home_Temperature changed
+then
+    if (Home_temperature.state > 30) {
+        sendCommand(Window, OPEN)
+    }
+end
+
+
+rule "close window when room is cold"
+when
+    Item Home_Temperature changed
+then
+    if (Home_temperature.state < 20) {
+        sendCommand(Window, CLOSED)
+    }
+end
+
+
+
+
+
+
+
+
+
+rule "unlock door in foyer"
+when
+    Item Foyer_Light changed to ON
+then
+    if (now.getHourOfDay >= 7 && now.getHourOfDay <= 21)
+    {
+        postUpdate(Front_Door_Lock, OFF)
+    }
+end
+
+
+rule "turn off hallway light"
+when
+    Item Kitchen_Light changed to OFF
+then
+if (now.getHourOfDay >= 19)
+    {
+        sendCommand(Hallway_Light, OFF)
+    } 
+end

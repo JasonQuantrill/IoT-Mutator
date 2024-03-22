@@ -1,20 +1,18 @@
-rule "Irrigation - all valves closed"
+rule "Initialize contact states"
 when
-	Item GroupIrrigationValves changed to OFF
+    System started
 then
-	
-	logInfo(logName, "All irrigation valves closed")
-	IrrigationCurrentValve.postUpdate(OFF)
-
-	
-	IrrigationSectionRemainingTime.postUpdate(0)
+    Windows?.members.forEach(window|
+        postUpdate(window, if (Math::random > 0.5) OPEN else CLOSED)
+    )
 end
 
-rule "Irrigation - update timer"
+rule "Initialize heating states"
 when
-  Time cron "0 * * ? * *"
+    System started
 then
-	if (IrrigationSectionRemainingTime.state as Number > 0) {
-		IrrigationSectionRemainingTime.postUpdate((IrrigationSectionRemainingTime.state as Number) - 1)
-    }
+    Heating?.members.forEach(heating|
+        postUpdate(heating, if (Math::random > 0.8) ON else OFF)
+    )
+    postUpdate(Temperature_Setpoint, 22)
 end

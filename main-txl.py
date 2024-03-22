@@ -44,59 +44,43 @@ def separate_rules(rules):
     return rules_list
 
 
-def mutate_rules_txl(rules_list, rule_A, rule_B, mutation_mode):
+def mutate_rules(rules_list, rule_A, rule_B, mutation_mode):
+    # Write the original rules to file
     with open('original.rules', 'w') as file:
         file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
+
+    # Apply the TXL mutator    
+    mutated_rules = str(subprocess.run(['txl', 'original.rules', f'txlmut/{mutation_mode}.txl'], stdout=subprocess.PIPE))
     
-    mutated_rules = str(subprocess.run(['txl', 'original.rules', f'txlmut/{mutation_mode}'], stdout=subprocess.PIPE))
+    # Separate mutated rule string back into 2 distinct rules
     mutated_rules = separate_rules(mutated_rules.replace('\\n', '\n').replace('\\r', '\r'))
 
+    # Write the mutated rules to file
     with open('mutated.rules', 'w') as file:
         file.write(mutated_rules[0] + '\n\n' + mutated_rules[1])
     
     return mutated_rules
 
-def mutate_rules_py(rules_list, rule_A, rule_B, mutation_mode):
-    with open('originalpy.rules', 'w') as file:
-        file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
-    
-    mutated_rules = str(subprocess.run(['txl', 'original.rules', f'Mutators/{mutation_mode}'], stdout=subprocess.PIPE))
-    mutated_rules = separate_rules(mutated_rules.replace('\\n', '\n').replace('\\r', '\r'))
 
-    with open('mutatedpy.rules', 'w') as file:
-        file.write(mutated_rules[0] + '\n\n' + mutated_rules[1])
-    
-    return mutated_rules
+def choose_rules(rules_list, mutation_mode):
+    # Determine eligible rules that function with txl mutator
+    eligible_rule_A, eligible_rule_B = determine_rule_eligibility(rules_list, mutation_mode)
 
-def determine_rule_eligibility(rules_list):
+    # From eligible rules, select the indices of 2 rules to mutate
+    rule_A = random.choice(eligible_rule_A)
+
+    eligible_rule_B.remove(rule_A)
+    rule_B = random.choice(eligible_rule_B)
+    
+    print(f'\nSelected rules {rule_A} and {rule_B}\n')
+
+    return rule_A, rule_B
+
+def determine_rule_eligibility(rules_list, mutation_mode):
     eligible_rules_A = []
     eligible_rules_B = []
 
-    # Create list of different formats of action commands
-    commands = ['sendCommand', 'postUpdate']
-    command_patterns = '|'.join(commands)
-
-    # Create list of different formats of action values
-    values = ['ON', 'OFF', 'OPEN', 'CLOSED']
-    value_patterns = '|'.join(values)
-
-    patterns_A = []
-    # eg. Item.postUpdate(OFF)
-    patterns_A.append(r'(.+)\.' + '(' + command_patterns + ')' + r'\((' + value_patterns + r')\)')
-    # eg. postUpdate(Item, OFF)   
-    patterns_A.append('(' + command_patterns + ')' + r'\(' + r'(.+), *' + r'(' + value_patterns + r')\)')
-
-
-    patterns_B = []
-    # eg. Item.postUpdate(Any.Value)
-    patterns_B.append(r'(.+)\.' + '(' + command_patterns + ')' + r'\(' + r'(.+)' + r'\)')
-    # eg. postUpdate(Item, Any.Value)
-    patterns_B.append('(' + command_patterns + ')' + r'\(' + r'(.+) *,' + r'(.+)\)')
-
-    # Group of patterns that txl will not parse, and so must be excluded
-    exclusion_patterns = []
-    # eg. GroupIrrigationTimes.members.findFirst[t | ... ]
-    exclusion_patterns.append(r'.members')
+    patterns_A, patterns_B, exclusion_patterns = get_rule_patterns(mutation_mode)
 
     for i in range(len(rules_list)):
         
@@ -137,39 +121,94 @@ def determine_rule_eligibility(rules_list):
     
     return eligible_rules_A, eligible_rules_B
 
-def choose_rules(rules_list):
-    # Determine eligible rules that function with txl mutator
-    eligible_rule_A, eligible_rule_B = determine_rule_eligibility(rules_list)
+def get_rule_patterns(mutation_mode):
+    # Create pattern lists to be returned: 
+    # Patterns for rule_A, rule_B, and patterns that txl will not parse, and so must be excluded
+    patterns_A = []
+    patterns_B = []
+    exclusion_patterns = []
 
-    # From eligible rules, select the indices of 2 rules to mutate
-    rule_A = random.choice(eligible_rule_A)
+    # Create list of different formats of action commands
+    commands = ['sendCommand', 'postUpdate']
+    command_patterns = '(' + '|'.join(commands) + ')'
 
-    eligible_rule_B.remove(rule_A)
-    rule_B = random.choice(eligible_rule_B)
-    
-    print(f'\nSelected rules {rule_A} and {rule_B}\n')
+    # Create list of different formats of action values
+    values = ['ON', 'OFF', 'OPEN', 'CLOSED']
+    value_patterns = '(' + '|'.join(values) + ')'
 
-    return rule_A, rule_B
+    # Create regex patterns
+    # eg. when\n TRIGGER\n then\n
+    trigger_pattern_general = r'when\n(\t| +)(.+)\nthen\n'
 
+    # eg. Item.postUpdate(OFF)
+    action_method_value = (r'(.+)\.' + command_patterns + r'\((' + value_patterns + r')\)')
+    # eg. postUpdate(Item, OFF)   
+    action_function_value = ('(' + command_patterns + ')' + r'\(' + r'(.+), *' + r'(' + value_patterns + r')\)')
+
+    # eg. Item.postUpdate(Any.Value) OR Item.postUpdate(OFF)
+    action_method_general = (r'(.+)\.' + command_patterns + r'\(' + r'(.+)' + r'\)')
+    # eg. postUpdate(Item, Any.Value) OR postUpdate(Item, OFF) 
+    action_function_general = (command_patterns + r'\(' + r'(.+) *,' + r'(.+)\)')
+
+    # Right now just catches all conditions
+    # Need it to catch only when an action is nested inside a condition
+    # If it's a condition nested inside another condition, ideally txl changes both
+    # Variations include:
+    #   single line conditions (no { })
+    #   else if (should be caught by regular if)
+    #   else (could do regex OR (if|else))
+    #   conditions with multiple statements inside
+    #       could be caught by { }, but that will be tripped up by nested conditions
+    condition_action = (r'if \((.+)\)')
+
+    if mutation_mode == 'SAC' or mutation_mode == 'WAC':
+        patterns_A.append(action_method_value)
+        patterns_A.append(action_function_value)
+
+        patterns_B.append(action_method_general)
+        patterns_B.append(action_function_general)
+
+    elif mutation_mode == 'STC-A' or mutation_mode == 'WTC-A':
+        patterns_A.append(trigger_pattern_general)
+
+        patterns_B.append(action_method_general)
+        patterns_B.append(action_function_general)
+
+    elif mutation_mode == 'STC-T' or mutation_mode == 'WTC-T':
+        patterns_A.append(action_method_general)
+        patterns_A.append(action_function_general)
+
+        patterns_B.append(trigger_pattern_general)
+    elif mutation_mode == 'WCC':
+        patterns_A.append(action_method_general)
+        patterns_A.append(action_function_general)
+
+        patterns_B.append(condition_action)
+
+    # eg. GroupIrrigationTimes.members.findFirst[t | ... ]
+    exclusion_patterns.append(r'.members')
+
+    return patterns_A, patterns_B, exclusion_patterns
 
 
 ######
 # Main
 
-rules_file = 'rulesets/irrigation4.rules'
+rules_file = 'rulesets/demo.rules'
 rules = get_rules(rules_file)
 
 # Parse rules file
 rules_list = separate_rules(rules)
 
-# Select 2 rules to mutate
-rule_A, rule_B = choose_rules(rules_list)
-rule_A, rule_B = 0, 1 # Testing
-
 # Specify which type of mutation is being performed
-mutation_mode = 'STC-A.txl'
+mutation_mode = 'SAC'
 
-mutated_rules = mutate_rules_txl(rules_list, rule_A, rule_B, mutation_mode)
+# Select 2 rules to mutate
+rule_A, rule_B = choose_rules(rules_list, mutation_mode)
+rule_A, rule_B = 4, 3 # Testing
+
+# Perform the mutation
+mutated_rules = mutate_rules(rules_list, rule_A, rule_B, mutation_mode)
 
 rules_list[rule_A] = mutated_rules[0]
 rules_list[rule_B] = mutated_rules[1]
