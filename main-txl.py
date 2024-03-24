@@ -7,9 +7,9 @@ import subprocess
 os.system('cls' if os.name == 'nt' else 'clear')
 
 
-def get_rules(filename):
+def get_rules(rules_file):
     # Open the .rules file in read mode
-    with open(rules_file, 'r') as file:
+    with open(f'Rulesets/{rules_file}.rules', 'r') as file:
         # Read the contents of the file
         file_contents = file.read()
     return file_contents
@@ -80,41 +80,26 @@ def determine_rule_eligibility(rules_list, mutation_mode):
     eligible_rules_A = []
     eligible_rules_B = []
 
-    patterns_A, patterns_B, exclusion_patterns = get_rule_patterns(mutation_mode)
+    (patterns_A, patterns_B,
+    exclusion_patterns_A, exclusion_patterns_B) = (
+        get_rule_patterns(mutation_mode))
 
     for i in range(len(rules_list)):
-        
-        # Exclude rules with this kind of pattern because txl won't parse it
-        exclusion_found = False
-        for exclusion_pattern in exclusion_patterns:
-            exclusion_match = re.findall(exclusion_pattern, rules_list[i])
-            if exclusion_match:
-                print(f'Rule {i}: Exclusion')
-                print(exclusion_match)
-                exclusion_found = True
-                break
-        if exclusion_found:
-            continue
-
-        # Find matches for pattern A and add them to eligible list
-        for pattern in patterns_A:
-            #print(pattern)
-            matches = re.findall(pattern, rules_list[i])
-            if matches:
-                for match in matches:
-                    print(f'Rule {i}A: ', match)
+        # Exclude rules for A with this kind of pattern
+        exclusion_found_A = any(re.findall(ex_pattern, rules_list[i]) for ex_pattern in exclusion_patterns_A)
+        if not exclusion_found_A:
+            # If not excluded for A, check if it matches any pattern for A
+            if any(re.findall(pattern, rules_list[i]) for pattern in patterns_A):
                 eligible_rules_A.append(i)
-                break
-
-        # Find matches for pattern B and add them to eligible list
-        for pattern in patterns_B:
-            #print(pattern)
-            matches = re.findall(pattern, rules_list[i])
-            if matches:
-                for match in matches:
-                    print(f'Rule {i}B: ', match)
+            
+        # Exclude rules for B
+        exclusion_found_B = any(re.findall(ex_pattern, rules_list[i]) for ex_pattern in exclusion_patterns_B)            
+        if not exclusion_found_B:
+            # If not excluded for B, check if it matches any pattern for B
+            if any(re.findall(pattern, rules_list[i]) for pattern in patterns_B):
                 eligible_rules_B.append(i)
-                break
+
+        print(i)
 
     print('\nRule_A eligible indices: ', eligible_rules_A)
     print('Rule_B eligible indices: ', eligible_rules_B)
@@ -126,7 +111,8 @@ def get_rule_patterns(mutation_mode):
     # Patterns for rule_A, rule_B, and patterns that txl will not parse, and so must be excluded
     patterns_A = []
     patterns_B = []
-    exclusion_patterns = []
+    exclusion_patterns_A = []
+    exclusion_patterns_B = []
 
     # Create list of different formats of action commands
     commands = ['sendCommand', 'postUpdate']
@@ -139,6 +125,14 @@ def get_rule_patterns(mutation_mode):
     # Create regex patterns
     # eg. when\n TRIGGER\n then\n
     trigger_pattern_general = r'when\n(\t| +)(.+)\nthen\n'
+    # eg. System started
+    # Note: this pattern could be allowed if the first trigger is also 'System started'
+    #       but for now the pattern is just excluded
+    trigger_pattern_system = r'System started'
+
+    # eg. Item GroupIrrigationValves changed
+    trigger_pattern_item = re.compile(r'when(.*)Item(.*)then', re.DOTALL)
+    
 
     # eg. Item.postUpdate(OFF)
     action_method_value = (r'(.+)\.' + command_patterns + r'\((' + value_patterns + r')\)')
@@ -168,8 +162,12 @@ def get_rule_patterns(mutation_mode):
         patterns_B.append(action_method_general)
         patterns_B.append(action_function_general)
 
+        if mutation_mode == 'WAC':
+            exclusion_patterns_A.append(trigger_pattern_system)
+            exclusion_patterns_B.append(trigger_pattern_system)
+
     elif mutation_mode == 'STC-A' or mutation_mode == 'WTC-A':
-        patterns_A.append(trigger_pattern_general)
+        patterns_A.append(trigger_pattern_item)
 
         patterns_B.append(action_method_general)
         patterns_B.append(action_function_general)
@@ -178,41 +176,46 @@ def get_rule_patterns(mutation_mode):
         patterns_A.append(action_method_general)
         patterns_A.append(action_function_general)
 
-        patterns_B.append(trigger_pattern_general)
+        patterns_B.append(trigger_pattern_item)
     elif mutation_mode == 'WCC':
         patterns_A.append(action_method_general)
         patterns_A.append(action_function_general)
 
         patterns_B.append(condition_action)
 
-    # eg. GroupIrrigationTimes.members.findFirst[t | ... ]
-    exclusion_patterns.append(r'.members')
+    # eg. TXL won't parse eg. GroupIrrigationTimes.members.findFirst[t | ... ]
+    exclusion_patterns_A.append(r'.members')
+    exclusion_patterns_B.append(r'.members')
 
-    return patterns_A, patterns_B, exclusion_patterns
-
-
-######
-# Main
-
-rules_file = 'rulesets/demo.rules'
-rules = get_rules(rules_file)
-
-# Parse rules file
-rules_list = separate_rules(rules)
-
-# Specify which type of mutation is being performed
-mutation_mode = 'SAC'
-
-# Select 2 rules to mutate
-rule_A, rule_B = choose_rules(rules_list, mutation_mode)
-rule_A, rule_B = 4, 3 # Testing
-
-# Perform the mutation
-mutated_rules = mutate_rules(rules_list, rule_A, rule_B, mutation_mode)
-
-rules_list[rule_A] = mutated_rules[0]
-rules_list[rule_B] = mutated_rules[1]
+    return patterns_A, patterns_B, exclusion_patterns_A, exclusion_patterns_B,
 
 
-print(mutated_rules[0], '\n')
-print(mutated_rules[1])
+def main(rules_file='irrigation', mutation_mode='STC-A', A=6, B=5):
+
+    # rules_file = 'rulesets/demo.rules'
+    rules = get_rules(rules_file)
+
+    # Parse rules file
+    rules_list = separate_rules(rules)
+
+    # Specify which type of mutation is being performed
+    #  mutation_mode = 'WAC'
+
+    # Select 2 rules to mutate
+    rule_A, rule_B = choose_rules(rules_list, mutation_mode)
+    rule_A, rule_B = A, B # Testing
+
+    # Perform the mutation
+    mutated_rules = mutate_rules(rules_list, rule_A, rule_B, mutation_mode)
+
+    rules_list[rule_A] = mutated_rules[0]
+    rules_list[rule_B] = mutated_rules[1]
+
+
+    print(mutated_rules[0], '\n')
+    print(mutated_rules[1])
+
+
+
+if __name__ == "__main__":
+    main()

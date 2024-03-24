@@ -192,7 +192,7 @@ function onToOff
         'false
     where
         Value [= "ON"]
-    export Swapped [boolean_literal]
+    export Swapped
         'true
     by
         OFF
@@ -217,7 +217,7 @@ function openToClosed
         'false
     where
         Value [= "OPEN"]
-    export Swapped [boolean_literal]
+    export Swapped
         'true
     by
         CLOSED

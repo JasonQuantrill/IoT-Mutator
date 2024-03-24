@@ -5,7 +5,7 @@ rule "TOF Zona6"
 when
   	Item gJFL_Zona06 changed to ON
 then
-	gJFL_IRGaragem.sendCommand(ON)
+	gJFL_IRGaragem.postUpdate(ON)
 	if(TOF_IR_Zona6 == null || TOF_IR_Zona6.hasTerminated) 
 	{
 		TOF_IR_Zona6 = createTimer(now.plusSeconds(30), [|
