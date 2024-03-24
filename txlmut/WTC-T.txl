@@ -38,7 +38,7 @@ function createWeakTriggerCascade
 
     construct ModifiedRules [repeat OpenHAB_rule]
         Rules   [modifyTriggerWithActionData]
-                [identicalConditions]
+                % [identicalConditions]
 
     by
         Package

@@ -10,7 +10,7 @@ val Random random = new Random()
  * This is a demo rule which simulates a real dimmer by reacting to increase/decrease commands
  * and posting an updated state on the bus
  */
-rule "Dimmed Light"
+rule "0 Dimmed Light"
 when
     Item DimmedLight received command
 then
@@ -27,12 +27,14 @@ then
     }
 end
 
-rule "Timer Demo"
+rule "1 Timer Demo"
 when
     Item Light_GF_Corridor_Ceiling received command
 then
-    if (receivedCommand == ON) {
-        if (timer === null) {
+    if (receivedCommand == ON) 
+    {
+        if (timer === null) 
+        {
             // first ON command, so create a timer to turn the light off again
             timer = createTimer(now.plusSeconds(10)) [|
                 sendCommand(Light_GF_Corridor_Ceiling, OFF)
@@ -53,7 +55,7 @@ end
 /**
  * The following rules help initializing the demo items with some helpful states.
  */
-rule "Initialize light states"
+rule "2 Initialize light states"
 when
     System started
 then
@@ -62,7 +64,7 @@ then
     )
 end
 
-rule "Initialize heating states"
+rule "3 Initialize heating states"
 when
     System started
 then
@@ -72,7 +74,7 @@ then
     postUpdate(Temperature_Setpoint, 22)
 end
 
-rule "Initialize contact states"
+rule "4 Initialize contact states"
 when
     System started
 then
@@ -81,14 +83,14 @@ then
     )
 end
 
-rule "Initialize Location"
+rule "5 Initialize Location"
 when
     System started
 then
     DemoLocation.postUpdate(new PointType("52.5200066,13.4049540"))
 end
 
-rule "Set random room temperatures"
+rule "6 Set random room temperatures"
 when
     System started or
     Time cron "0 0/5 * * * ?"
@@ -98,7 +100,7 @@ then
     )
 end
 
-rule "Set daily max and min temperature"
+rule "7 Set daily max and min temperature"
 when
     Item Weather_Temperature changed or
     Time cron "0 0 0 * * ?" or
@@ -113,14 +115,14 @@ then
 end
 
 // Creates an item that stores the last update time of this item
-rule "Records last weather update time"
+rule "8 Records last weather update time"
 when
     Item Weather_Temperature received update
 then
     postUpdate(Weather_LastUpdate, new DateTimeType())
 end
 
-rule "Set random wifi variations"
+rule "9Set random wifi variations"
 when
     System started or
     Time cron "/20 * * * * ?"
@@ -128,7 +130,7 @@ then
     postUpdate(Wifi_Level, (Math::random * 4.0).intValue)
 end
 
-rule "Set random image URLs"
+rule "10 Set random image URLs"
 when
     Time cron "/10 * * * * ?"
 then
@@ -138,7 +140,7 @@ then
     postUpdate(ImageURL, url + "/" + res)
 end
 
-rule "Volume"
+rule "11 Volume"
 when
     Item Volume received command
 then
@@ -150,7 +152,7 @@ then
     }
 end
 
-rule "Select Radio Station"
+rule "12 Select Radio Station"
 when
     Item Radio_Station received command
 then

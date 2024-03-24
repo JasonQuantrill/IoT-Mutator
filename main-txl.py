@@ -50,10 +50,10 @@ def mutate_rules(rules_list, rule_A, rule_B, mutation_mode):
         file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
 
     # Apply the TXL mutator    
-    mutated_rules = str(subprocess.run(['txl', 'original.rules', f'txlmut/{mutation_mode}.txl'], stdout=subprocess.PIPE))
-    
+    mutated_rules = subprocess.run(['txl', 'original.rules', f'txlmut/{mutation_mode}.txl'], stdout=subprocess.PIPE).stdout.decode('utf-8')
+
     # Separate mutated rule string back into 2 distinct rules
-    mutated_rules = separate_rules(mutated_rules.replace('\\n', '\n').replace('\\r', '\r'))
+    mutated_rules = separate_rules(mutated_rules.replace('\r\n', '\n'))
 
     # Write the mutated rules to file
     with open('mutated.rules', 'w') as file:
@@ -67,10 +67,16 @@ def choose_rules(rules_list, mutation_mode):
     eligible_rule_A, eligible_rule_B = determine_rule_eligibility(rules_list, mutation_mode)
 
     # From eligible rules, select the indices of 2 rules to mutate
-    rule_A = random.choice(eligible_rule_A)
-
-    eligible_rule_B.remove(rule_A)
-    rule_B = random.choice(eligible_rule_B)
+    if len(eligible_rule_B) == 1:
+        rule_B = eligible_rule_B[0]
+        if rule_B in eligible_rule_A:
+            eligible_rule_A.remove(rule_B)
+        rule_A = random.choice(eligible_rule_A)
+    else:
+        rule_A = random.choice(eligible_rule_A)
+        if rule_A in eligible_rule_B:
+            eligible_rule_B.remove(rule_A)
+        rule_B = random.choice(eligible_rule_B)
     
     print(f'\nSelected rules {rule_A} and {rule_B}\n')
 
@@ -124,11 +130,12 @@ def get_rule_patterns(mutation_mode):
 
     # Create regex patterns
     # eg. when\n TRIGGER\n then\n
-    trigger_pattern_general = r'when\n(\t| +)(.+)\nthen\n'
+    # trigger_pattern_general = r'when\n(\t| +)(.+)\nthen\n'
+    trigger_pattern_general = re.compile(r'when(.*)then', re.DOTALL)
     # eg. System started
     # Note: this pattern could be allowed if the first trigger is also 'System started'
     #       but for now the pattern is just excluded
-    trigger_pattern_system = r'System started'
+    trigger_pattern_system = re.compile(r'when(.*)System started(.*)then', re.DOTALL)
 
     # eg. Item GroupIrrigationValves changed
     trigger_pattern_item = re.compile(r'when(.*)Item(.*)then', re.DOTALL)
@@ -173,10 +180,10 @@ def get_rule_patterns(mutation_mode):
         patterns_B.append(action_function_general)
 
     elif mutation_mode == 'STC-T' or mutation_mode == 'WTC-T':
-        patterns_A.append(action_method_general)
-        patterns_A.append(action_function_general)
+        patterns_A.append(action_method_value)
+        patterns_A.append(action_function_value)
 
-        patterns_B.append(trigger_pattern_item)
+        patterns_B.append(trigger_pattern_general)
     elif mutation_mode == 'WCC':
         patterns_A.append(action_method_general)
         patterns_A.append(action_function_general)
@@ -190,16 +197,13 @@ def get_rule_patterns(mutation_mode):
     return patterns_A, patterns_B, exclusion_patterns_A, exclusion_patterns_B,
 
 
-def main(rules_file='irrigation', mutation_mode='STC-A', A=6, B=5):
+def main(A=1, B=0, rules_file='demo', mutation_mode='STC-T'):
 
     # rules_file = 'rulesets/demo.rules'
     rules = get_rules(rules_file)
 
     # Parse rules file
     rules_list = separate_rules(rules)
-
-    # Specify which type of mutation is being performed
-    #  mutation_mode = 'WAC'
 
     # Select 2 rules to mutate
     rule_A, rule_B = choose_rules(rules_list, mutation_mode)

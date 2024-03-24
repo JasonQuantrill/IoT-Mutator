@@ -133,8 +133,8 @@ function removeConditions
 
     construct ModifiedScriptA [script_block]
         ScriptA [removeConditions2]
-    construct ModifiedScriptB [script_block]
-        ScriptB [removeConditions2]
+    % construct ModifiedScriptB [script_block]
+        % ScriptB [removeConditions2]
 
     by
         'rule NameA
@@ -150,7 +150,7 @@ function removeConditions
             TriggerB
             MoreTCB
         'then 
-            ModifiedScriptB
+            ScriptB
         'end
         RestB
 end function

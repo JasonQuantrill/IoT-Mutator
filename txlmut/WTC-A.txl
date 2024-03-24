@@ -35,7 +35,7 @@ function createWeakTriggerCascade
 
     construct ModifiedRules [repeat OpenHAB_rule]
         Rules   [modifyActionWithTriggerData]
-                [identicalConditions]
+                % [identicalConditions]
 
     by
         Package
@@ -75,11 +75,11 @@ function modifyActionWithTriggerData
 
     %%% Extract data from trigger
     construct _ [trigger_condition]
-        TriggerB [extractTriggerData]
+        TriggerA [extractTriggerData]
 
     %%% Modify action with data from trigger
     construct ModifiedScript [script_block]
-        ScriptA [modifyAction]
+        ScriptB [modifyAction]
     
     
     by
@@ -88,7 +88,7 @@ function modifyActionWithTriggerData
             TriggerA
             MoreTCA
         'then 
-            ModifiedScript
+            ScriptA
         'end
 
         'rule NameB
@@ -96,7 +96,7 @@ function modifyActionWithTriggerData
             TriggerB
             MoreTCB
         'then 
-            ScriptB
+            ModifiedScript
         'end
         RestB
 end function

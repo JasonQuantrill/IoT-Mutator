@@ -75,11 +75,11 @@ function modifyActionWithTriggerData
 
     %%% Extract data from trigger
     construct _ [trigger_condition]
-        TriggerB [extractTriggerData]
+        TriggerA [extractTriggerData]
 
     %%% Modify action with data from trigger
     construct ModifiedScript [script_block]
-        ScriptA [modifyAction]
+        ScriptB [modifyAction]
     
     
     by
@@ -88,7 +88,7 @@ function modifyActionWithTriggerData
             TriggerA
             MoreTCA
         'then 
-            ModifiedScript
+            ScriptA
         'end
 
         'rule NameB
@@ -96,7 +96,7 @@ function modifyActionWithTriggerData
             TriggerB
             MoreTCB
         'then 
-            ScriptB
+            ModifiedScript
         'end
         RestB
 end function
@@ -128,8 +128,8 @@ function removeConditions
             ScriptB [script_block]
         'end
 
-    construct ModifiedScriptA [script_block]
-        ScriptA [removeConditions2]
+    % construct ModifiedScriptA [script_block]
+        % ScriptA [removeConditions2]
     construct ModifiedScriptB [script_block]
         ScriptB [removeConditions2]
 
@@ -139,7 +139,7 @@ function removeConditions
             TriggerA
             MoreTCA
         'then 
-            ModifiedScriptA
+            ScriptA
         'end
 
         'rule NameB
