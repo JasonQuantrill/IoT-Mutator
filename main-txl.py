@@ -40,11 +40,13 @@ def separate_rules(rules):
             if rule_start_index != -1:
                 # Extract the rule starting from "rule" to the end of the block
                 rule = trimmed_block[rule_start_index:] + '\nend'  # Append 'end' back to the rule
+
                 rules_list.append(rule)
     return rules_list
 
 
 def mutate_rules(rules_list, rule_A, rule_B, mutation_mode):
+    
     # Write the original rules to file
     with open('original.rules', 'w') as file:
         file.write(rules_list[rule_A] + '\n\n' + rules_list[rule_B])
@@ -197,7 +199,7 @@ def get_rule_patterns(mutation_mode):
     return patterns_A, patterns_B, exclusion_patterns_A, exclusion_patterns_B,
 
 
-def main(A=1, B=0, rules_file='demo', mutation_mode='STC-T'):
+def main(A=1, B=2, rules_file='owntracks', mutation_mode='SAC'):
 
     # rules_file = 'rulesets/demo.rules'
     rules = get_rules(rules_file)

@@ -1,41 +1,26 @@
-rule "1 Timer Demo"
+rule "MqttPostionParseJosh"
 when
-    Item Light_GF_Corridor_Ceiling received command
+    Item mqttPositionJoshRaw changed
 then
-    if (receivedCommand == ON) {
-        if (timer === null) {
-            timer=createTimer(now.plusSeconds(10))
-
-            [| sendCommand (Light_GF_Corridor_Ceiling, OFF)
-            ]
-        }
-        else {
-            timer.reschedule (now.plusSeconds (10))
-        }
-    }
-    else if (receivedCommand == OFF) {
-        if (timer !== null) {
-            timer.canceltimer=null
-
-        }
-    }
+    valStringjson=(mqttPositionJoshRaw.stateasStringType).toString
+    valStringtype=transform("JSONPATH","$._type",json)
+    postUpdate (mqttJoshLatitude, lat)
+    postUpdate (mqttJoshLongitude, lon)
+    locationJosh.postUpdate (new PointType (lat + "," + lon))
+    mqttJoshAccuracy.postUpdate (acc)
+    mqttJoshBattery.postUpdate (batt)
+    joshDistanceFromHome.postUpdate ((home.distanceFrom (locationJosh.state)) * 0.000621)
+    ("Josh is on the move")
+    postUpdate (josh_moving, OFF)
 end
 
-rule "0 Dimmed Light"
+rule "System Start"
 when
-    Item Light_GF_Corridor_Ceiling received command OFF
+    Item mqttPositionJoshRaw changed
 then
-    if ((receivedCommand == INCREASE) || (receivedCommand == DECREASE)) {
-        varNumberpercent=0
-
-        if (DimmedLight.state instanceof DecimalType) percent = DimmedLight.state
-        asDecimalType
-
-        if (receivedCommand == INCREASE) percent = percent + 5
-        if (receivedCommand == DECREASE) percent = percent - 5
-        if (percent < 0) percent = 0
-        if (percent > 100) percent = 100
-        postUpdate (DimmedLight, percent)
-        ;
+    if (phone_Josh.state == ON) {
+        postUpdate (mqttJoshAccuracy, acc)
     }
+    else if (phone_Josh_Work.state == ON) postUpdate (josh, "Work")
+    else postUpdate (josh, "Away")
 end

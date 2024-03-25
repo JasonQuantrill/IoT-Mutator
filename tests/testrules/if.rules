@@ -1,0 +1,26 @@
+rule "0 Dimmed Light"
+when
+    Item DimmedLight received command
+then   
+      
+    if (condition.state == 1) percent = Item1.state
+
+    if (condition.state == 2)
+        percent = Item2.state
+
+    if (condition.state == 3)
+    percent = Item3.state as DecimalType
+    percent = Item4.state as IntType
+
+    if ((receivedCommand == INCREASE) || (receivedCommand == DECREASE))
+    {
+        var Number percent = 0
+        var Number percent = 5
+    }
+    else
+    {
+        var Number percent = 0
+        var Number percent = 5
+    }
+end
+

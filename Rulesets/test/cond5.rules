@@ -1,0 +1,29 @@
+// irrigation A = 4, B = 3
+// remove single line condition in rule B
+
+// first just find the correct action
+
+rule "Irrigation - all valves closed"
+when
+	Item GroupIrrigationValves changed to OFF
+then
+	if (One.state > 0)
+		IrriSec.postUpdate((IrriSec.state as Number) - 1)
+    if (Two.state > 0)
+		IrrigationValve.postUpdate(OFF)
+    if (Three.state as Number > 0)
+		Other.postUpdate(OFF)
+    if (Four.state as Number > 0) {
+        logInfo(logName, "All irrigation valves closed")
+        Irrigation.postUpdate(0)
+    }
+	
+end
+
+rule "Irrigation - update timer"
+when
+  Time cron "0 * * ? * *" 
+then
+	if (IrriSec.state as Number > 0)
+		IrriSec.postUpdate((IrriSec.state as Number) - 1)
+end

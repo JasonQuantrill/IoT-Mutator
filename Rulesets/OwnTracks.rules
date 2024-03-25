@@ -30,7 +30,7 @@ rule "MqttPostionParseJosh"
       locationJosh.postUpdate(new PointType(lat + "," + lon))
       mqttJoshAccuracy.postUpdate(acc)
       mqttJoshBattery.postUpdate(batt)
-	joshDistanceFromHome.postUpdate((home.distanceFrom(locationJosh.state))*0.000621)//meters to miles
+	joshDistanceFromHome.postUpdate((home.distanceFrom(locationJosh.state))*0.000621)
     }
         if (josh_moving.state == ON){
                 if (josh_moving_location.distanceFrom(locationJosh.state) > 300){

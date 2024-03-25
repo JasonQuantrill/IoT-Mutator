@@ -1,3 +1,9 @@
+// owntracks a=1 b=2
+// mqttJoshAccuracy.postUpdate (acc) is the selected action?
+// removes pushover from pushover("Josh is on the move")
+// successfully removes both nested conditions in rule_a though
+// in rule_b it doesn't remove the if else if else around the action
+
 rule "MqttPostionParseJosh"
   when
     Item mqttPositionJoshRaw changed

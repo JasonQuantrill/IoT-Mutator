@@ -25,6 +25,7 @@ then
         if (percent > 100) percent = 100
         postUpdate(DimmedLight, percent);
     }
+    var Number percent = 0
 end
 
 rule "1 Timer Demo"
@@ -50,6 +51,7 @@ then
             timer = null
         }
     }
+    var Number percent = 0
 end
 
 /**

@@ -73,17 +73,21 @@ function extractActionValueData
     replace [script_block]
         Statements [repeat openHAB_declaration_or_statement]
 
-    construct _ [repeat openHAB_declaration_or_statement]
-        Statements  [exportActionValueFunctionItemValue] [exportActionValueMethodItemValue]
+    %construct _ [repeat openHAB_declaration_or_statement]
+        %Statements  [exportActionValueFunctionItemValue] [exportActionValueMethodItemValue]
 
     by
         Statements
 end function
 
-function exportActionValueFunctionItemValue
-    replace * [statement]
+function extractActionFunctionValue
+    replace [openHAB_declaration_or_statement]
         ReplacementAction [id]
         '( ReplacementItem [id], ReplacementValue [id] ')
+
+    import Extracted [boolean_literal]
+    deconstruct Extracted
+        'false
 
     where
         ReplacementValue [= "ON"] [= "OFF"] [= "OPEN"] [= "CLOSED"]
@@ -91,15 +95,22 @@ function exportActionValueFunctionItemValue
     export ReplacementAction
     export ReplacementItem
     export ReplacementValue
+    
+    export Extracted
+        'true
 
     by
         ReplacementAction '( ReplacementItem, ReplacementValue )
 end function
 
-function exportActionValueMethodItemValue
-    replace * [statement]
+function extractActionMethodValue
+    replace [openHAB_declaration_or_statement]
         ReplacementItem [id]
         '. ReplacementAction [id] '( ReplacementValue [id] ')
+
+    import Extracted [boolean_literal]
+    deconstruct Extracted
+        'false
 
     where
         ReplacementValue [= "ON"] [= "OFF"] [= "OPEN"] [= "CLOSED"]
@@ -107,6 +118,10 @@ function exportActionValueMethodItemValue
     export ReplacementAction
     export ReplacementItem
     export ReplacementValue
+
+        
+    export Extracted
+        'true
 
     by
         ReplacementItem '. ReplacementAction '( ReplacementValue ')

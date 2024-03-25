@@ -62,7 +62,7 @@ function modifyActionWithActionData
         'end
 
     construct _ [script_block]
-        ScriptA [extractActionData]
+        ScriptA [extractActionValueData]
     construct ModifiedScript [script_block]
         ScriptB [modifyActionOpposite]
 
