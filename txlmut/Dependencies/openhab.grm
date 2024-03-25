@@ -124,9 +124,15 @@ define script_block
 %[repeat statement][NL]
 end define
 
+%%% Original
+%define openHAB_declaration_or_statement
+%	[variable_declaration] %[NL]
+%	|[statement] %[NL]
+%end define
+
+%%% Edited
 define openHAB_declaration_or_statement
-	[variable_declaration] %[NL]
-	|[statement] %[NL]
+	[declaration_or_statement] %[NL]
 end define
 
 define command
