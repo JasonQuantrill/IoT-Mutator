@@ -100,7 +100,7 @@ function extractActionFunctionValue
         'true
 
     by
-        ReplacementAction '( ReplacementItem, ReplacementValue )
+        ReplacementAction '( ReplacementItem, ReplacementValue ')
 end function
 
 function extractActionMethodValue
