@@ -1,6 +1,6 @@
 [script_block]
 [repeat openHAB_declaration_or_statement]
-[statement]
+[variable_declaration] | [statement]
 
 ->1
 [if_statement]
@@ -19,3 +19,10 @@
 [expression_statement]
 [expression] [NL]
 [assignment_expression]
+
+
+
+block
+[repeat declaration_or_statement]
+[declaration]       |       [statement]
+[variable_declaration]      []
