@@ -3,6 +3,7 @@
 
 // first just find the correct action
 
+
 rule "Irrigation - all valves closed"
 when
 	Item GroupIrrigationValves changed to OFF
@@ -13,18 +14,18 @@ then
     }
     else {
         if (Two.state as Number > 0) {
-            Three.postUpdate(ON)
+            One.postUpdate(ON)
             helloooo = 8
             helloooo = 7
         }
         else {
             helloooo = 4
-            Three.postUpdate(ON)
+            Two.postUpdate(OFF)
             helloooo = 2
             helloooo = 3
         }
         meep = mmop
-        Two.postUpdate(state)
+        Three.postUpdate(state)
         
     }
         
@@ -39,15 +40,27 @@ rule "Irrigation - update timer"
 when
   Time cron "0 * * ? * *" 
 then
-	IrriSec.sendCommand(ON)
-    More.sendCommand(ON)
+	if (One.state as Number > 0) {
+        helloooo = 2
+        helloooo = 3
+    }
+    else {
+        if (Two.state as Number > 0) {
+            helloooo = 8
+            helloooo = 7
+        }
+        else {
+            helloooo = 4
+            Three.postUpdate(ON)
+            helloooo = 2
+            helloooo = 3
+        }
+        meep = mmop
+        
+    }
+        
+            
+    if (Four.state as Number > 0)
+        if (Four.state as Number > 0)
+            Four.postUpdate(ON)
 end
-
-
-// rule "Irrigation - update timer"
-// when
-//   Time cron "0 * * ? * *" 
-// then
-// 	if (IrriSec.state as Number > 0)
-// 		IrriSec.sendCommand((IrriSec.state as Number) - 1)
-// end

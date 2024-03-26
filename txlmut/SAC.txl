@@ -1,8 +1,6 @@
 % TXL OpenHAB Rules Grammar
 include "Dependencies/openhab.grm"
-include "Mutator-Functions/2extractActionData.txl"
-include "Mutator-Functions/modifyAction.txl"
-%include "Mutator-Functions/modifyConditions.txl"
+include "Mutator-Functions/actionHandling.txl"
 
 function main
     replace [program]
@@ -22,7 +20,7 @@ function createStrongActionContradiction
         Rules [repeat OpenHAB_rule]
 
     construct ModifiedRules  [repeat OpenHAB_rule]
-        Rules   [modifyActionWithActionData]
+        Rules   [modifyActionBWithActionAData]
                 [forceIdenticalTriggers]
                 % [removeConditions]
     
@@ -34,7 +32,7 @@ function createStrongActionContradiction
 end function
 
 
-function modifyActionWithActionData
+function modifyActionBWithActionAData
     replace [repeat OpenHAB_rule]
         Rules [repeat OpenHAB_rule]
     
@@ -65,7 +63,7 @@ function modifyActionWithActionData
         ScriptA [extractActionRemoveCondition]
 
     construct ModifiedScriptB [script_block]
-        ScriptB [modifyActionOpposite]
+        ScriptB [replaceOppositeActionRemoveCondition]
 
     by
         'rule NameA
@@ -135,58 +133,113 @@ end function
 
 
 
+function extractActionRemoveCondition
+    replace [script_block]
+        Script [script_block]
+
+    export Replacing [boolean_literal]
+        'false
+    export Completed [boolean_literal]
+        'false
+
+    construct processedScript [script_block]
+        Script [processActionCondition]
+
+    export Completed
+        'false
+    
+    by
+        processedScript
+end function
+
+function replaceOppositeActionRemoveCondition
+    replace [script_block]
+        Script [script_block]
+
+    export Replacing [boolean_literal]
+        'true
+    export Opposite [boolean_literal]
+        'true
+    export Completed [boolean_literal]
+        'false
+
+    construct processedScript [script_block]
+        Script [processActionCondition]
+
+    export Completed
+        'false
+    
+    by
+        processedScript
+end function
+
+
 %%%%%%%%%%%%%%
 % PASS MAIN
 %%%%
-function extractActionRemoveCondition
+function processActionCondition
+    replace [script_block]
+        Script [script_block]
+
+    construct ProcessedScript [script_block]
+        Script [performFirstPass] [performSecondPass] [performThirdPass]
+  
+    by
+        ProcessedScript   
+end function
+
+
+function performFirstPass
+    import Completed [boolean_literal]
+    deconstruct Completed
+        'false
+
     replace [script_block]
         Statements [repeat openHAB_declaration_or_statement]
 
-    export Extracted [boolean_literal]
+    construct EmptyScript [repeat openHAB_declaration_or_statement]
+        % empty
+    construct ProcessedScript [repeat openHAB_declaration_or_statement]
+        EmptyScript [processActionStatement each Statements]
+
+    by
+        ProcessedScript
+end function
+
+function performSecondPass
+    import Completed [boolean_literal]
+    deconstruct Completed
         'false
 
-    %%% This part of the program works as follows:
-    % Several passes are made, going line-by-line over the rule, searching for action-value statements
-    % Each pass explores one layer more deeply into 'if' statements
-    % The first pass does not explore any if-statements, treating the entire if-block construct as 1 statement
-    % As each line is considered, it is then added to the list of FirstPassStatements in the rule
-    % By the end of the pass, all of the original statements have been added
-    % When an action-value statement is found, the action data is extracted, and the 'Extracted' flag is set
-    % When the flag is set, then goal is fulfilled, and the remaining statements are added to the list
-    % Subsequent passes are ignored and the completed list is passed along down until it is eventually returned
-    % If no action-value statement is found, the completed list is erased, and the process starts over.
-    % The second pass similarly considers each statement one by one, adding them to the SecondPassStatements list
-    % When a statement is an if-statement, it is explored, searching for an action-value statement
-    % If no action-value statement is found in the if-block, the if-statement is added unchanged to SecondPassStatements
-    % If one is found, the action data is extracted and the flag is set
-    % The if-conditional is removed, and all of its statements are extracted and added to the SecondPassStatements.
-    % If it is part of an if-ifelse-else construct, the branch where the action was found is kept, while the other branches are erased.
-    % The pass then finishes itself, subsequent passes are ignored, and SecondPassStatements is returned
-    % If an action-value is not found at this depth, nested-ifs are then explored, and so on
-    %%% The algorithm does layer-by-layer searching to prioritize finding the shallowest solution, minimizing the diff-size of the mutation
+    replace [script_block]
+        Statements [repeat openHAB_declaration_or_statement]
 
-    
-    construct PrepareForFirstPass [repeat openHAB_declaration_or_statement]
+    construct EmptyScript [repeat openHAB_declaration_or_statement]
         % empty
-    %construct FirstPassStatements [repeat openHAB_declaration_or_statement]
-    %    PrepareForFirstPass [processActionStatement each Statements]
+    construct ProcessedScript [repeat openHAB_declaration_or_statement]
+        EmptyScript [processIfStatement each Statements]
 
-    %construct PrepareForSecondPass [repeat openHAB_declaration_or_statement]
-    %    FirstPassStatements [actionFound] [actionNotFoundYet]
-
-    %construct SecondPassStatements [repeat openHAB_declaration_or_statement]
-    %    PrepareForSecondPass [processIfStatement each Statements]
-
-    %construct PrepareForThirdPass [repeat openHAB_declaration_or_statement]
-        %SecondPassStatements [actionFound] [actionNotFoundYet]
-
-    construct ThirdPassStatements [repeat openHAB_declaration_or_statement]
-        %PrepareForThirdPass [processNestedIfStatement each Statements]
-        PrepareForFirstPass [processNestedIfStatement each Statements]
-  
     by
-        ThirdPassStatements   
+        ProcessedScript
 end function
+
+function performThirdPass
+    import Completed [boolean_literal]
+    deconstruct Completed
+        'false
+
+    replace [script_block]
+        Statements [repeat openHAB_declaration_or_statement]
+
+    construct EmptyScript [repeat openHAB_declaration_or_statement]
+        % empty
+    construct ProcessedScript [repeat openHAB_declaration_or_statement]
+        EmptyScript [processNestedIfStatement each Statements]
+
+    by
+        ProcessedScript
+end function
+
 
 
 
@@ -194,9 +247,9 @@ end function
 % PASS HELPERS
 %%%%
 function actionFound
-    import Extracted [boolean_literal]
-        deconstruct Extracted
-            'true
+    import Completed [boolean_literal]
+    deconstruct Completed
+        'true
 
     replace [repeat openHAB_declaration_or_statement]
         Statements [repeat openHAB_declaration_or_statement]
@@ -205,9 +258,9 @@ function actionFound
 end function
 
 function actionNotFoundYet
-    import Extracted [boolean_literal]
-        deconstruct Extracted
-            'false
+    import Completed [boolean_literal]
+    deconstruct Completed
+        'false
 
     replace [repeat openHAB_declaration_or_statement]
         Statements [repeat openHAB_declaration_or_statement]
@@ -216,8 +269,32 @@ function actionNotFoundYet
     by
         EmptyStatements
 end function
+
+function actionFoundInIf
+    import Completed [boolean_literal]
+    deconstruct Completed
+        'true
+
+    replace [repeat declaration_or_statement]
+        ElseStatements [repeat declaration_or_statement]
+    construct EmptyElseStatements [repeat declaration_or_statement]
+        % empty
+    by EmptyElseStatements
+end function
+
+function actionNotFoundInIf
+    import Completed [boolean_literal]
+    deconstruct Completed
+        'false
+
+    replace [repeat declaration_or_statement]
+        ElseStatements [repeat declaration_or_statement]
     
+    by ElseStatements
+end function
     
+
+
 %%%%%%%%%%%%%%
 % PROCESSING MAINS
 %%%%
@@ -230,8 +307,7 @@ function processActionStatement Statement [openHAB_declaration_or_statement]
     %%% it extracts the data and sets the 'extracted' flag
     %%% then it adds each statement to the list
     construct ProcessedStatement [openHAB_declaration_or_statement]
-        Statement   [extractActionFunctionValue] [extractActionMethodValue]
-                    [keepStatement]
+        Statement   [processAction] [keepStatement]
     
     by
         Statements [. ProcessedStatement]
@@ -258,9 +334,12 @@ end function
 function processNestedIfStatement Statement [openHAB_declaration_or_statement]
     replace [repeat openHAB_declaration_or_statement]
         Statements [repeat openHAB_declaration_or_statement]
+
+    construct StatementCast [repeat openHAB_declaration_or_statement]
+        Statement
   
     construct ProcessedStatement [repeat openHAB_declaration_or_statement]
-        Statement   [singleLineNest] %[multiLineNest] [ifElseNest]
+        StatementCast   [singleLineNest] [multiLineNest] [ifElseNest]
                         [keepStatement]
     by
         Statements [. ProcessedStatement]
@@ -271,12 +350,11 @@ end function
 % IF ELSE MAINS
 %%%%
 function singleLineIf
-    %%% Skip processing if statements if extraction already complete
-    import Extracted [boolean_literal]
-    deconstruct Extracted
+    import Completed [boolean_literal]
+    deconstruct Completed
         'false
 
-    replace [openHAB_declaration_or_statement]
+    replace [repeat openHAB_declaration_or_statement]
         'if '( Condition [condition] ')
             Statement [statement]
 
@@ -286,17 +364,16 @@ function singleLineIf
     construct StatementCast [openHAB_declaration_or_statement]
         Statement
 
-    construct ProcessedStatement [openHAB_declaration_or_statement]
-        StatementCast [extractActionFunctionValue] [extractActionMethodValue]
+    construct ProcessedStatement [repeat openHAB_declaration_or_statement]
+        StatementCast   [processAction]
                         [keepSingleIfAction] [keepSingleIfNotAction Condition]
     by
         ProcessedStatement
 end function
 
 function multiLineIf
-    %%% Skip processing if statements if extraction already complete
-    import Extracted [boolean_literal]
-    deconstruct Extracted
+    import Completed [boolean_literal]
+    deconstruct Completed
         'false
 
     replace [repeat openHAB_declaration_or_statement]
@@ -317,9 +394,8 @@ function multiLineIf
 end function
 
 function ifElse
-    %%% Skip processing if statements if extraction already complete
-    import Extracted [boolean_literal]
-    deconstruct Extracted
+    import Completed [boolean_literal]
+    deconstruct Completed
         'false
 
     replace [repeat openHAB_declaration_or_statement]
@@ -330,26 +406,26 @@ function ifElse
             ElseStatements [repeat declaration_or_statement]
         '}
 
-    construct emptyIfStatements [repeat openHAB_declaration_or_statement]
+    construct EmptyIfStatements [repeat openHAB_declaration_or_statement]
         % empty
-    construct emptyElseStatements [repeat openHAB_declaration_or_statement]
-        % empty
-    construct emptyIfElseConstruct [repeat openHAB_declaration_or_statement]
-        % empty
-
     construct ProcessedIfStatements [repeat openHAB_declaration_or_statement]
-        emptyIfStatements [processIfElseIfStatements each IfStatements] 
+        EmptyIfStatements [processIfBlockStatements each IfStatements] 
     construct ProcessedIfConstruct [repeat openHAB_declaration_or_statement]
         ProcessedIfStatements [keepMultiIfAction] [keepMultiIfNotAction Condition]
 
+    construct EmptyElseStatements [repeat openHAB_declaration_or_statement]
+        % empty
+    construct PreparedElseStatements [repeat declaration_or_statement]
+        ElseStatements [actionFoundInIf] [actionNotFoundInIf] 
     construct ProcessedElseStatements [repeat openHAB_declaration_or_statement]
-        emptyElseStatements [processIfElseElseStatements each ElseStatements]
+        EmptyElseStatements [processIfBlockStatements each PreparedElseStatements]
     construct ProcessedElseConstruct [repeat openHAB_declaration_or_statement]
         ProcessedElseStatements [keepMultiIfAction] [keepMultiElseNotAction]
 
-
+    construct EmptyIfElseConstruct [repeat openHAB_declaration_or_statement]
+        % empty
     construct ProcessedIfElseConstruct [repeat openHAB_declaration_or_statement]
-        emptyIfElseConstruct    [addIfElseConstruct ProcessedIfConstruct ProcessedElseConstruct]
+        EmptyIfElseConstruct    [addIfElseConstruct ProcessedIfConstruct ProcessedElseConstruct]
                                 [addOnlyIfStatements ProcessedIfConstruct ProcessedElseConstruct]
                                 [addOnlyElseStatements ProcessedIfConstruct ProcessedElseConstruct]
 
@@ -362,32 +438,52 @@ end function
 % NESTED IF MAINS
 %%%%
 function singleLineNest
-    %%% Skip processing if statements if extraction already complete
-    import Extracted [boolean_literal]
-    deconstruct Extracted
+    import Completed [boolean_literal]
+    deconstruct Completed
         'false
 
-    replace [openHAB_declaration_or_statement]
+    replace [repeat openHAB_declaration_or_statement]
         'if '( Condition [condition] ')
             Statement [statement]
 
     where not
         Statement [isBlock]
         
-    construct StatementCast [openHAB_declaration_or_statement]
+    construct StatementCast [repeat openHAB_declaration_or_statement]
         Statement
 
-    construct ProcessedStatement [openHAB_declaration_or_statement]
+    construct ProcessedStatement [repeat openHAB_declaration_or_statement]
         StatementCast [singleLineIf] [multiLineIf] [ifElse]
                         [keepSingleIfAction] [keepSingleIfNotAction Condition]
     by
         ProcessedStatement
 end function
 
-function IfElseNest
-    %%% Skip processing if statements if extraction already complete
-    import Extracted [boolean_literal]
-    deconstruct Extracted
+function multiLineNest
+    import Completed [boolean_literal]
+    deconstruct Completed
+        'false
+
+    replace [repeat openHAB_declaration_or_statement]
+        'if '( Condition [condition] ') '{ 
+            Statements [repeat declaration_or_statement]
+        '}
+    
+    construct EmptyStatements [repeat openHAB_declaration_or_statement]
+        % Empty
+    construct ProcessedIfBlockStatements [repeat openHAB_declaration_or_statement]
+        EmptyStatements [processNestedIfBlockStatements each Statements]
+
+    construct ProcessedIfStatement [repeat openHAB_declaration_or_statement]
+        ProcessedIfBlockStatements [keepMultiIfAction] [keepMultiIfNotAction Condition]
+
+    by
+        ProcessedIfStatement
+end function
+
+function ifElseNest
+    import Completed [boolean_literal]
+    deconstruct Completed
         'false
 
     replace [repeat openHAB_declaration_or_statement]
@@ -398,26 +494,27 @@ function IfElseNest
             ElseStatements [repeat declaration_or_statement]
         '}
 
-    construct emptyIfStatements [repeat openHAB_declaration_or_statement]
+    construct EmptyIfStatements [repeat openHAB_declaration_or_statement]
         % empty
-    construct emptyElseStatements [repeat openHAB_declaration_or_statement]
-        % empty
-    construct emptyIfElseConstruct [repeat openHAB_declaration_or_statement]
-        % empty
-
     construct ProcessedIfStatements [repeat openHAB_declaration_or_statement]
-        emptyIfStatements [processIfElseIfStatements each IfStatements] 
+        EmptyIfStatements [processNestedIfBlockStatements each IfStatements] 
     construct ProcessedIfConstruct [repeat openHAB_declaration_or_statement]
         ProcessedIfStatements [keepMultiIfAction] [keepMultiIfNotAction Condition]
+    
 
+    construct EmptyElseStatements [repeat openHAB_declaration_or_statement]
+        % empty
+    construct PreparedElseStatements [repeat declaration_or_statement]
+        ElseStatements [actionFoundInIf] [actionNotFoundInIf] 
     construct ProcessedElseStatements [repeat openHAB_declaration_or_statement]
-        emptyElseStatements [processIfElseElseStatements each ElseStatements]
+        EmptyElseStatements [processNestedIfBlockStatements each PreparedElseStatements]
     construct ProcessedElseConstruct [repeat openHAB_declaration_or_statement]
         ProcessedElseStatements [keepMultiIfAction] [keepMultiElseNotAction]
 
-
+    construct EmptyIfElseConstruct [repeat openHAB_declaration_or_statement]
+        % empty
     construct ProcessedIfElseConstruct [repeat openHAB_declaration_or_statement]
-        emptyIfElseConstruct    [addIfElseConstruct ProcessedIfConstruct ProcessedElseConstruct]
+        EmptyIfElseConstruct    [addIfElseConstruct ProcessedIfConstruct ProcessedElseConstruct]
                                 [addOnlyIfStatements ProcessedIfConstruct ProcessedElseConstruct]
                                 [addOnlyElseStatements ProcessedIfConstruct ProcessedElseConstruct]
 
@@ -428,7 +525,7 @@ end function
 
 
 %%%%%%%%%%%%%%
-% IF ELSE PROCESSING SECONDARY
+% IF STATEMENT PROCESSING
 %%%%
 function processIfBlockStatements Statement [declaration_or_statement]
     replace [repeat openHAB_declaration_or_statement]
@@ -438,46 +535,20 @@ function processIfBlockStatements Statement [declaration_or_statement]
         Statement        
 
     construct ProcessedStatement [openHAB_declaration_or_statement]
-        StatementCast   [extractActionFunctionValue] [extractActionMethodValue]
-                        [keepStatement]
+        StatementCast   [processAction] [keepStatement]
     by
         Statements [. ProcessedStatement]
 end function
 
-function processIfElseIfStatements Statement [declaration_or_statement]
-    %%% Skip processing if statements if extraction already complete
-    import Extracted [boolean_literal]
-    deconstruct Extracted
-        'false
-    
+function processNestedIfBlockStatements Statement [declaration_or_statement]
     replace [repeat openHAB_declaration_or_statement]
         Statements [repeat openHAB_declaration_or_statement]
 
-    construct StatementCast [openHAB_declaration_or_statement]
+    construct StatementCast [repeat openHAB_declaration_or_statement]
         Statement        
 
-    construct ProcessedStatement [openHAB_declaration_or_statement]
-        StatementCast   [extractActionFunctionValue] [extractActionMethodValue]
-                        [keepStatement]
-    by
-        Statements [. ProcessedStatement]
-end function
-
-function processIfElseElseStatements Statement [declaration_or_statement]
-    %%% Skip processing if statements if extraction already complete
-    import Extracted [boolean_literal]
-    deconstruct Extracted
-        'false
-    
-    replace [repeat openHAB_declaration_or_statement]
-        Statements [repeat openHAB_declaration_or_statement]
-
-    construct StatementCast [openHAB_declaration_or_statement]
-        Statement        
-
-    construct ProcessedStatement [openHAB_declaration_or_statement]
-        StatementCast   [extractActionFunctionValue] [extractActionMethodValue]
-                        [keepStatement]
+    construct ProcessedStatement [repeat openHAB_declaration_or_statement]
+        StatementCast   [singleLineIf] [multiLineIf] [ifElse]
     by
         Statements [. ProcessedStatement]
 end function
@@ -540,8 +611,8 @@ end function
 % KEEPERS
 %%%%
 function keepMultiIfNotAction Condition [condition]
-    import Extracted [boolean_literal]
-    deconstruct Extracted
+    import Completed [boolean_literal]
+    deconstruct Completed
         'false
 
     replace [repeat openHAB_declaration_or_statement]
@@ -561,8 +632,8 @@ function keepMultiIfNotAction Condition [condition]
 end function
 
 function keepMultiElseNotAction
-    import Extracted [boolean_literal]
-    deconstruct Extracted
+    import Completed [boolean_literal]
+    deconstruct Completed
         'false
 
     replace [repeat openHAB_declaration_or_statement]
@@ -574,7 +645,7 @@ function keepMultiElseNotAction
         emptyDOS [castToDOS each Statements]
         
     construct PlaceholderElseStatement [repeat openHAB_declaration_or_statement]
-        'if '( empty ') '{
+        'if '( 'empty ') '{
             DOSCast
         '}
     by
@@ -582,8 +653,8 @@ function keepMultiElseNotAction
 end function
 
 function keepMultiIfAction
-    import Extracted [boolean_literal]
-    deconstruct Extracted
+    import Completed [boolean_literal]
+    deconstruct Completed
         'true
 
     replace [repeat openHAB_declaration_or_statement]
@@ -594,9 +665,9 @@ function keepMultiIfAction
 end function
 
 function keepSingleIfNotAction Condition [condition]
-    import Extracted [boolean_literal]
-        deconstruct Extracted
-            'false
+    import Completed [boolean_literal]
+    deconstruct Completed
+        'false
     
     replace [openHAB_declaration_or_statement]
         Statement [openHAB_declaration_or_statement]
@@ -611,9 +682,9 @@ function keepSingleIfNotAction Condition [condition]
 end function
 
 function keepSingleIfAction
-    import Extracted [boolean_literal]
-        deconstruct Extracted
-            'true
+    import Completed [boolean_literal]
+    deconstruct Completed
+        'true
 
     replace [openHAB_declaration_or_statement]
         Statement [openHAB_declaration_or_statement]
@@ -663,3 +734,4 @@ function isIfStatement
             _ [repeat declaration_or_statement]
         '}
 end function
+
