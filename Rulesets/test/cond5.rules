@@ -39,6 +39,15 @@ rule "Irrigation - update timer"
 when
   Time cron "0 * * ? * *" 
 then
-	if (IrriSec.state as Number > 0)
-		IrriSec.postUpdate((IrriSec.state as Number) - 1)
+	IrriSec.sendCommand(ON)
+    More.sendCommand(ON)
 end
+
+
+// rule "Irrigation - update timer"
+// when
+//   Time cron "0 * * ? * *" 
+// then
+// 	if (IrriSec.state as Number > 0)
+// 		IrriSec.sendCommand((IrriSec.state as Number) - 1)
+// end
